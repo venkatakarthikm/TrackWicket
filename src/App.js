@@ -33,10 +33,10 @@ function App() {
         console.log("🚀 Initializing OneSignal via NPM...");
         
         await OneSignal.init({
-          appId: process.env.REACT_APP_ONESIGNAL_APP_ID,
+          appId: "6781142f-1aa4-4745-b9d1-908618d9d1f6",
           allowLocalhostAsSecureOrigin: true,
           notifyButton: {
-            enable: false, // We use custom UI
+            enable: true, // We use custom UI
           },
           // Safari-specific settings
           safari_web_id: 'web.onesignal.auto.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Optional: Add if you have Safari Web ID
