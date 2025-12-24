@@ -31,7 +31,7 @@ function App() {
         // CRITICAL CHECK: Prevent double initialization error
         if (window.OneSignal && !window.OneSignal.initialized) {
           await window.OneSignal.init({
-            appId: 'a184874e-867f-415f-9d74-1c8d3afb821b',
+            appId: '6781142f-1aa4-4745-b9d1-908618d9d1f6',
             allowLocalhostAsSecureOrigin: true,
             notifyButton: { enabled: false }, // We use our own custom UI
           });
