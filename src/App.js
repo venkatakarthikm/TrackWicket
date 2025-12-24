@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import OneSignal from 'react-onesignal';
 import Home from './Home';
 import LiveDetails from './LiveDetails';
 import ScorecardPage from './ScorecardPage';
@@ -25,62 +24,28 @@ const getInitialTheme = () => {
 
 function App() {
   const [theme, setTheme] = useState(getInitialTheme);
-  const [oneSignalReady, setOneSignalReady] = useState(false);
 
   useEffect(() => {
     const initOneSignal = async () => {
       try {
-        console.log("🚀 Initializing OneSignal via NPM...");
-        
-        await OneSignal.init({
-          appId: "6781142f-1aa4-4745-b9d1-908618d9d1f6",
-          allowLocalhostAsSecureOrigin: true,
-          notifyButton: {
-            enable: true, // We use custom UI
-          },
-          // Safari-specific settings
-          safari_web_id: 'web.onesignal.auto.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Optional: Add if you have Safari Web ID
-        });
-
-        // Wait for OneSignal to be fully ready
-        await OneSignal.setSubscription(true); // Don't auto-subscribe
-
-        setOneSignalReady(true);
-        console.log("✅ OneSignal Initialized Successfully");
-
-        // Log current status
-        const isPushSupported = await OneSignal.isPushNotificationsSupported();
-        const permission = await OneSignal.getNotificationPermission();
-        const userId = await OneSignal.getUserId();
-        
-        console.log("📱 Push Supported:", isPushSupported);
-        console.log("🔔 Permission:", permission);
-        console.log("👤 User ID:", userId);
-
-        // Listen for permission changes
-        OneSignal.on('subscriptionChange', function(isSubscribed) {
-          console.log("📡 Subscription changed:", isSubscribed);
-        });
-
-        OneSignal.on('notificationPermissionChange', function(permissionChange) {
-          console.log("🔔 Permission changed:", permissionChange);
-        });
-
-      } catch (error) {
-        console.error("❌ OneSignal Init Error:", error);
-        
-        // Retry once after 2 seconds
-        if (!window.OneSignalInitRetried) {
-          window.OneSignalInitRetried = true;
-          console.log("🔄 Retrying OneSignal initialization...");
-          setTimeout(initOneSignal, 2000);
-        } else {
-          console.error("❌ OneSignal initialization failed permanently");
+        // CRITICAL CHECK: Prevent double initialization error
+        if (window.OneSignal && !window.OneSignal.initialized) {
+          await window.OneSignal.init({
+            appId: 'a184874e-867f-415f-9d74-1c8d3afb821b',
+            allowLocalhostAsSecureOrigin: true,
+            notifyButton: { enabled: false }, // We use our own custom UI
+          });
+          console.log("✅ OneSignal Initialized");
         }
+      } catch (e) {
+        console.error("OneSignal Global Init Error:", e);
       }
     };
 
-    initOneSignal();
+    // Ensure script is loaded before calling init
+    if (window.OneSignal) {
+        initOneSignal();
+    }
   }, []);
 
   useEffect(() => {
@@ -106,7 +71,7 @@ function App() {
           <Route path="/recent" element={<Home type="recent" {...themeProps} />} />
           <Route path="/players" element={<Players {...themeProps} />} />
           <Route path="/player/:playerSlug/:playerId" element={<PlayerDetails {...themeProps} />} />
-          <Route path="/notifications" element={<Notification {...themeProps} oneSignalReady={oneSignalReady} />} />
+          <Route path="/notifications" element={<Notification {...themeProps} />} />
           <Route path="/privacy" element={<Privacy {...themeProps} />} />
           <Route path="/terms" element={<Terms {...themeProps} />} />
           <Route path="/match/:matchId/:teamsSlug/:seriesSlug/live" element={<LiveDetails {...themeProps} />} /> 

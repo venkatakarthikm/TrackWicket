@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+const API_BASE_URL = "6781142f-1aa4-4745-b9d1-908618d9d1f6";
 
 class NotificationComponent extends Component {
   constructor(props) {
@@ -116,7 +116,7 @@ class NotificationComponent extends Component {
       console.log("🔔 Requesting notification permission...");
 
       // Request permission using OneSignal NPM package
-      const permission = await OneSignal.showNativePrompt();
+      const permission = await OneSignal.Notifications.requestPermission()
 
       console.log("✅ Permission result:", permission);
 
@@ -473,22 +473,6 @@ class NotificationComponent extends Component {
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Your browser doesn't support push notifications.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {permissionStatus === "blocked" && (
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-6 mb-6">
-            <div className="flex items-center gap-4">
-              <AlertCircle className="text-orange-500" size={24} />
-              <div>
-                <h3 className="font-bold text-lg">Ad Blocker Detected</h3>
-                <p className="text-sm text-muted-foreground">
-                  OneSignal is being blocked by your ad blocker or browser
-                  extension. Please disable it for this site to enable
-                  notifications.
                 </p>
               </div>
             </div>
