@@ -24,28 +24,60 @@ const getInitialTheme = () => {
 
 function App() {
   const [theme, setTheme] = useState(getInitialTheme);
+  const [oneSignalReady, setOneSignalReady] = useState(false);
 
   useEffect(() => {
     const initOneSignal = async () => {
       try {
-        // CRITICAL CHECK: Prevent double initialization error
-        if (window.OneSignal && !window.OneSignal.initialized) {
-          await window.OneSignal.init({
-            appId: 'a184874e-867f-415f-9d74-1c8d3afb821b',
-            allowLocalhostAsSecureOrigin: true,
-            notifyButton: { enabled: false }, // We use our own custom UI
-          });
-          console.log("✅ OneSignal Initialized");
+        // Wait for OneSignal script to load
+        if (!window.OneSignal) {
+          console.log("⏳ Waiting for OneSignal to load...");
+          // Retry after a delay
+          setTimeout(initOneSignal, 500);
+          return;
         }
+
+        // Check if already initialized
+        if (window.OneSignalInitialized) {
+          console.log("✅ OneSignal already initialized");
+          setOneSignalReady(true);
+          return;
+        }
+
+        console.log("🚀 Initializing OneSignal...");
+        
+        await window.OneSignal.init({
+          appId: process.env.REACT_APP_ONE_SIGNAL_APP_ID,
+          allowLocalhostAsSecureOrigin: true,
+          notifyButton: { enabled: false },
+          // Automatically show prompt on first visit (optional)
+          // autoResubscribe: true,
+          // autoRegister: false, // We'll manually trigger it from Notification page
+        });
+
+        // Mark as initialized
+        window.OneSignalInitialized = true;
+        setOneSignalReady(true);
+        
+        console.log("✅ OneSignal Initialized Successfully");
+
+        // Log current subscription status
+        const isPushSupported = await window.OneSignal.isPushNotificationsSupported();
+        const permission = await window.OneSignal.getNotificationPermission();
+        console.log("📱 Push Supported:", isPushSupported);
+        console.log("🔔 Permission Status:", permission);
+
       } catch (e) {
-        console.error("OneSignal Global Init Error:", e);
+        console.error("❌ OneSignal Init Error:", e);
+        // Retry once after error
+        if (!window.OneSignalInitRetried) {
+          window.OneSignalInitRetried = true;
+          setTimeout(initOneSignal, 1000);
+        }
       }
     };
 
-    // Ensure script is loaded before calling init
-    if (window.OneSignal) {
-        initOneSignal();
-    }
+    initOneSignal();
   }, []);
 
   useEffect(() => {
@@ -71,7 +103,7 @@ function App() {
           <Route path="/recent" element={<Home type="recent" {...themeProps} />} />
           <Route path="/players" element={<Players {...themeProps} />} />
           <Route path="/player/:playerSlug/:playerId" element={<PlayerDetails {...themeProps} />} />
-          <Route path="/notifications" element={<Notification {...themeProps} />} />
+          <Route path="/notifications" element={<Notification {...themeProps} oneSignalReady={oneSignalReady} />} />
           <Route path="/privacy" element={<Privacy {...themeProps} />} />
           <Route path="/terms" element={<Terms {...themeProps} />} />
           <Route path="/match/:matchId/:teamsSlug/:seriesSlug/live" element={<LiveDetails {...themeProps} />} /> 
