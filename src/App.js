@@ -43,7 +43,7 @@ function App() {
         });
 
         // Wait for OneSignal to be fully ready
-        await OneSignal.setSubscription(false); // Don't auto-subscribe
+        await OneSignal.setSubscription(true); // Don't auto-subscribe
 
         setOneSignalReady(true);
         console.log("✅ OneSignal Initialized Successfully");
