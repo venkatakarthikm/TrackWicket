@@ -1,521 +1,613 @@
-import React, { Component } from 'react';
-import Navbar from './Navbar';
-import axios from 'axios'; 
-import { Check, Plus, X, Shield, Bell, BellRing, Loader2, AlertCircle } from 'lucide-react';
+import React, { Component } from "react";
+import Navbar from "./Navbar";
+import axios from "axios";
+import OneSignal from "react-onesignal";
+import {
+  Check,
+  Plus,
+  X,
+  Shield,
+  Bell,
+  BellRing,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 class NotificationComponent extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isLoggedIn: false,
-            username: '',
-            isRegistering: false, 
-            formUsername: '',
-            formPassword: '',
-            message: '',
-            messageType: '', // 'success' or 'error'
-            selectedTeams: [],
-            allAvailableTeams: [],
-            oneSignalPlayerId: null,
-            permissionStatus: 'default',
-            isLoading: false, // For auth operations
-            isSavingPreferences: false, // For saving teams
-            isRequestingPermission: false // For notification permission
-        };
-    }
-
-    async componentDidMount() {
-        await this.checkLoginStatus();
-        this.fetchAvailableTeams();
-        if (this.props.oneSignalReady) {
-            this.setupOneSignalState();
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.oneSignalReady && this.props.oneSignalReady) {
-            this.setupOneSignalState();
-        }
-    }
-
-    handleInputChange = (e) => {
-        this.setState({ [e.target.name]: e.target.value });
-    }
-
-    setupOneSignalState = async () => {
-        if (!window.OneSignal || !window.OneSignalInitialized) {
-            console.log("⏳ OneSignal not ready yet");
-            return;
-        }
-        
-        try {
-            const isPushSupported = await window.OneSignal.isPushNotificationsSupported();
-            
-            if (!isPushSupported) {
-                console.warn("⚠️ Push notifications not supported on this browser");
-                this.setState({ permissionStatus: 'unsupported' });
-                return;
-            }
-
-            const playerId = await window.OneSignal.getUserId();
-            const permission = await window.OneSignal.getNotificationPermission();
-            
-            console.log("🔔 OneSignal State - Player ID:", playerId, "Permission:", permission);
-            
-            this.setState({ 
-                oneSignalPlayerId: playerId,
-                permissionStatus: permission 
-            });
-
-            // Listen for subscription changes
-            window.OneSignal.on('subscriptionChange', async (isSubscribed) => {
-                console.log("📡 Subscription changed:", isSubscribed);
-                const id = await window.OneSignal.getUserId();
-                this.setState({ oneSignalPlayerId: id });
-                
-                if (this.state.isLoggedIn && id) {
-                    await this.savePreferences(this.state.selectedTeams, id);
-                }
-            });
-
-            // If already granted and logged in, save the player ID
-            if (permission === 'granted' && playerId && this.state.isLoggedIn) {
-                await this.savePreferences(this.state.selectedTeams, playerId);
-            }
-
-        } catch (error) {
-            console.error('❌ OneSignal State Setup Error:', error);
-        }
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLoggedIn: false,
+      username: "",
+      isRegistering: false,
+      formUsername: "",
+      formPassword: "",
+      message: "",
+      messageType: "",
+      selectedTeams: [],
+      allAvailableTeams: [],
+      oneSignalPlayerId: null,
+      permissionStatus: "default",
+      isLoading: false,
+      isSavingPreferences: false,
+      isRequestingPermission: false,
     };
+  }
 
-    handleRequestPermission = async () => {
-        if (!window.OneSignal || !window.OneSignalInitialized) {
-            this.showMessage('OneSignal is not ready yet. Please refresh the page.', 'error');
-            return;
+  async componentDidMount() {
+    await this.checkLoginStatus();
+    this.fetchAvailableTeams();
+    if (this.props.oneSignalReady) {
+      this.setupOneSignalState();
+    }
+    setTimeout(() => {
+      if (!this.props.oneSignalReady) {
+        this.setState({
+          permissionStatus: "blocked",
+          message:
+            "⚠️ OneSignal appears to be blocked by an ad blocker. Please disable it for this site.",
+          messageType: "error",
+        });
+      }
+    }, 5000);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!prevProps.oneSignalReady && this.props.oneSignalReady) {
+      this.setupOneSignalState();
+    }
+  }
+
+  handleInputChange = (e) => {
+    this.setState({ [e.target.name]: e.target.value });
+  };
+
+  setupOneSignalState = async () => {
+    try {
+      const isPushSupported = await OneSignal.isPushNotificationsSupported();
+
+      if (!isPushSupported) {
+        console.warn("⚠️ Push notifications not supported on this browser");
+        this.setState({ permissionStatus: "unsupported" });
+        return;
+      }
+
+      const playerId = await OneSignal.getUserId();
+      const permission = await OneSignal.getNotificationPermission();
+
+      console.log(
+        "🔔 OneSignal State - Player ID:",
+        playerId,
+        "Permission:",
+        permission
+      );
+
+      this.setState({
+        oneSignalPlayerId: playerId,
+        permissionStatus: permission,
+      });
+
+      // Listen for subscription changes
+      OneSignal.on("subscriptionChange", async (isSubscribed) => {
+        console.log("📡 Subscription changed:", isSubscribed);
+        const id = await OneSignal.getUserId();
+        this.setState({ oneSignalPlayerId: id });
+
+        if (this.state.isLoggedIn && id) {
+          await this.savePreferences(this.state.selectedTeams, id);
         }
+      });
 
-        this.setState({ isRequestingPermission: true });
+      // If already granted and logged in, save the player ID
+      if (permission === "granted" && playerId && this.state.isLoggedIn) {
+        await this.savePreferences(this.state.selectedTeams, playerId);
+      }
+    } catch (error) {
+      console.error("❌ OneSignal State Setup Error:", error);
+    }
+  };
 
-        try {
-            console.log("🔔 Requesting notification permission...");
-            
-            // This triggers the browser's native permission dialog
-            await window.OneSignal.showNativePrompt();
-            
-            // Wait a moment for the user to respond
-            setTimeout(async () => {
-                const id = await window.OneSignal.getUserId();
-                const perm = await window.OneSignal.getNotificationPermission();
-                
-                console.log("✅ Permission result - ID:", id, "Permission:", perm);
-                
-                this.setState({ 
-                    oneSignalPlayerId: id, 
-                    permissionStatus: perm,
-                    isRequestingPermission: false
-                });
+  handleRequestPermission = async () => {
+    this.setState({ isRequestingPermission: true });
 
-                if (perm === 'granted') {
-                    this.showMessage('Notifications enabled successfully!', 'success');
-                    
-                    // Save to backend if logged in
-                    if (this.state.isLoggedIn && id) {
-                        await this.savePreferences(this.state.selectedTeams, id);
-                    }
-                } else if (perm === 'denied') {
-                    this.showMessage('Notification permission denied. Please enable it in browser settings.', 'error');
-                }
-            }, 1000);
+    try {
+      console.log("🔔 Requesting notification permission...");
 
-        } catch (error) {
-            console.error("❌ Permission request failed:", error);
-            this.setState({ isRequestingPermission: false });
-            this.showMessage('Failed to request notification permission.', 'error');
+      // Request permission using OneSignal NPM package
+      const permission = await OneSignal.showNativePrompt();
+
+      console.log("✅ Permission result:", permission);
+
+      // Wait a moment and get the updated state
+      setTimeout(async () => {
+        const id = await OneSignal.getUserId();
+        const perm = await OneSignal.getNotificationPermission();
+
+        this.setState({
+          oneSignalPlayerId: id,
+          permissionStatus: perm,
+          isRequestingPermission: false,
+        });
+
+        if (perm === "granted") {
+          this.showMessage("Notifications enabled successfully!", "success");
+
+          // Save to backend if logged in
+          if (this.state.isLoggedIn && id) {
+            await this.savePreferences(this.state.selectedTeams, id);
+          }
+        } else if (perm === "denied") {
+          this.showMessage(
+            "Notification permission denied. Please enable it in browser settings.",
+            "error"
+          );
         }
-    };
+      }, 1000);
+    } catch (error) {
+      console.error("❌ Permission request failed:", error);
+      this.setState({ isRequestingPermission: false });
+      this.showMessage("Failed to request notification permission.", "error");
+    }
+  };
 
-    showMessage = (text, type = 'success') => {
-        this.setState({ message: text, messageType: type });
-        setTimeout(() => this.setState({ message: '', messageType: '' }), 4000);
-    };
+  showMessage = (text, type = "success") => {
+    this.setState({ message: text, messageType: type });
+    setTimeout(() => this.setState({ message: "", messageType: "" }), 4000);
+  };
 
-    checkLoginStatus = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/status`, { withCredentials: true });
-            
-            if (response.data.message === 'Authenticated') {
-                this.setState({ 
-                    isLoggedIn: true, 
-                    username: response.data.username,
-                    selectedTeams: response.data.preferences || [],
-                    oneSignalPlayerId: response.data.oneSignalPlayerId
-                });
-                console.log("✅ User authenticated:", response.data.username);
+  checkLoginStatus = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/status`, {
+        withCredentials: true,
+      });
+
+      if (response.data.message === "Authenticated") {
+        this.setState({
+          isLoggedIn: true,
+          username: response.data.username,
+          selectedTeams: response.data.preferences || [],
+          oneSignalPlayerId: response.data.oneSignalPlayerId,
+        });
+        console.log("✅ User authenticated:", response.data.username);
+      }
+    } catch (error) {
+      console.log("ℹ️ Not authenticated");
+      this.setState({ isLoggedIn: false });
+    }
+  };
+
+  fetchAvailableTeams = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/teams`);
+      const teams = response.data.map((t) => t.name);
+      this.setState({ allAvailableTeams: teams });
+      console.log("✅ Fetched teams:", teams.length);
+    } catch (error) {
+      console.error("❌ Failed to fetch teams", error);
+      this.showMessage("Failed to load teams list.", "error");
+    }
+  };
+
+  handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    const { isRegistering, formUsername, formPassword } = this.state;
+
+    if (!formUsername.trim() || !formPassword.trim()) {
+      this.showMessage("Please fill in all fields.", "error");
+      return;
+    }
+
+    if (formUsername.trim().length < 3) {
+      this.showMessage("Username must be at least 3 characters.", "error");
+      return;
+    }
+
+    if (formPassword.length < 6) {
+      this.showMessage("Password must be at least 6 characters.", "error");
+      return;
+    }
+
+    const endpoint = isRegistering ? "/register" : "/login";
+    this.setState({ isLoading: true, message: "", messageType: "" });
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}${endpoint}`,
+        {
+          username: formUsername.trim(),
+          password: formPassword,
+        },
+        { withCredentials: true }
+      );
+
+      if (isRegistering) {
+        this.showMessage("Registration successful! Please login.", "success");
+        this.setState({
+          isRegistering: false,
+          formUsername: "",
+          formPassword: "",
+          isLoading: false,
+        });
+      } else {
+        console.log("✅ Login successful:", response.data);
+
+        this.setState({
+          isLoggedIn: true,
+          username: response.data.username,
+          selectedTeams: response.data.preferences || [],
+          oneSignalPlayerId: response.data.oneSignalPlayerId || null,
+          formUsername: "",
+          formPassword: "",
+          isLoading: false,
+        });
+
+        this.showMessage(`Welcome back, ${response.data.username}!`, "success");
+
+        // If OneSignal is ready and permission granted, sync the player ID
+        if (
+          this.props.oneSignalReady &&
+          this.state.permissionStatus === "granted"
+        ) {
+          const playerId = await OneSignal.getUserId();
+          if (playerId) {
+            await this.savePreferences(this.state.selectedTeams, playerId);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("❌ Auth error:", error);
+      const errorMsg =
+        error.response?.data?.message ||
+        "Authentication failed. Please try again.";
+      this.showMessage(errorMsg, "error");
+      this.setState({ isLoading: false });
+    }
+  };
+
+  handleLogout = async () => {
+    try {
+      await axios.post(`${API_BASE_URL}/logout`, {}, { withCredentials: true });
+      this.setState({
+        isLoggedIn: false,
+        selectedTeams: [],
+        username: "",
+        oneSignalPlayerId: null,
+      });
+      this.showMessage("Logged out successfully.", "success");
+      console.log("✅ Logged out");
+    } catch (error) {
+      console.error("❌ Logout failed", error);
+      this.showMessage("Logout failed.", "error");
+    }
+  };
+
+  toggleTeam = async (team) => {
+    const { selectedTeams } = this.state;
+    const newTeams = selectedTeams.includes(team)
+      ? selectedTeams.filter((t) => t !== team)
+      : [...selectedTeams, team];
+
+    // Optimistically update UI
+    this.setState({ selectedTeams: newTeams });
+
+    // Save to backend
+    await this.savePreferences(newTeams);
+  };
+
+  savePreferences = async (teams, overrideId = null) => {
+    const playerId = overrideId || this.state.oneSignalPlayerId;
+
+    this.setState({ isSavingPreferences: true });
+
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/preferences`,
+        {
+          teams,
+          oneSignalPlayerId: playerId,
+        },
+        { withCredentials: true }
+      );
+
+      console.log("✅ Preferences saved:", response.data);
+
+      this.setState({
+        isSavingPreferences: false,
+        oneSignalPlayerId: response.data.oneSignalPlayerId || playerId,
+      });
+
+      this.showMessage("Preferences updated successfully!", "success");
+    } catch (error) {
+      console.error("❌ Save preferences failed:", error);
+      this.setState({ isSavingPreferences: false });
+      this.showMessage("Failed to save preferences.", "error");
+    }
+  };
+
+  renderAuthForm() {
+    const {
+      isRegistering,
+      formUsername,
+      formPassword,
+      message,
+      messageType,
+      isLoading,
+    } = this.state;
+
+    return (
+      <div className="max-w-md mx-auto bg-card border border-border p-8 rounded-2xl shadow-2xl">
+        <h2 className="text-3xl font-display font-extrabold text-center mb-6 gradient-text">
+          {isRegistering ? "Join Track Wicket" : "Welcome Back"}
+        </h2>
+
+        {message && (
+          <div
+            className={`flex items-center gap-2 p-3 rounded-xl mb-4 text-sm ${
+              messageType === "success"
+                ? "bg-green-500/10 text-green-500 border border-green-500/30"
+                : "bg-red-500/10 text-red-500 border border-red-500/30"
+            }`}
+          >
+            <AlertCircle size={16} />
+            <span>{message}</span>
+          </div>
+        )}
+
+        <form onSubmit={this.handleAuthSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="formUsername"
+            placeholder="Username (min 3 characters)"
+            value={formUsername}
+            onChange={this.handleInputChange}
+            className="w-full p-3 rounded-xl bg-secondary/50 border border-border outline-none text-foreground focus:border-primary transition-colors"
+            required
+            disabled={isLoading}
+            minLength={3}
+          />
+          <input
+            type="password"
+            name="formPassword"
+            placeholder="Password (min 6 characters)"
+            value={formPassword}
+            onChange={this.handleInputChange}
+            className="w-full p-3 rounded-xl bg-secondary/50 border border-border outline-none text-foreground focus:border-primary transition-colors"
+            required
+            disabled={isLoading}
+            minLength={6}
+          />
+          <button
+            type="submit"
+            className="w-full btn-futuristic py-3 rounded-xl font-bold mt-2 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
+          >
+            {isLoading && <Loader2 size={18} className="animate-spin" />}
+            {isLoading
+              ? "Please wait..."
+              : isRegistering
+              ? "Register"
+              : "Login"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() =>
+              this.setState({
+                isRegistering: !isRegistering,
+                message: "",
+                messageType: "",
+                formUsername: "",
+                formPassword: "",
+              })
             }
-        } catch (error) {
-            console.log("ℹ️ Not authenticated");
-            this.setState({ isLoggedIn: false });
-        }
-    }
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            disabled={isLoading}
+          >
+            {isRegistering
+              ? "Already have an account? Login"
+              : "Don't have an account? Register"}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-    fetchAvailableTeams = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/teams`);
-            const teams = response.data.map(t => t.name);
-            this.setState({ allAvailableTeams: teams });
-            console.log("✅ Fetched teams:", teams.length);
-        } catch (error) {
-            console.error("❌ Failed to fetch teams", error);
-            this.showMessage('Failed to load teams list.', 'error');
-        }
-    }
+  renderNotificationSettings() {
+    const {
+      username,
+      selectedTeams,
+      allAvailableTeams,
+      message,
+      messageType,
+      permissionStatus,
+      isSavingPreferences,
+      isRequestingPermission,
+    } = this.state;
 
-    handleAuthSubmit = async (e) => {
-        e.preventDefault();
-        const { isRegistering, formUsername, formPassword } = this.state;
+    const unselectedTeams = allAvailableTeams.filter(
+      (team) => !selectedTeams.includes(team)
+    );
 
-        if (!formUsername.trim() || !formPassword.trim()) {
-            this.showMessage('Please fill in all fields.', 'error');
-            return;
-        }
-
-        if (formUsername.trim().length < 3) {
-            this.showMessage('Username must be at least 3 characters.', 'error');
-            return;
-        }
-
-        if (formPassword.length < 6) {
-            this.showMessage('Password must be at least 6 characters.', 'error');
-            return;
-        }
-
-        const endpoint = isRegistering ? '/register' : '/login';
-        this.setState({ isLoading: true, message: '', messageType: '' });
-
-        try {
-            const response = await axios.post(`${API_BASE_URL}${endpoint}`, {
-                username: formUsername.trim(),
-                password: formPassword
-            }, { withCredentials: true });
-
-            if (isRegistering) {
-                this.showMessage('Registration successful! Please login.', 'success');
-                this.setState({ 
-                    isRegistering: false, 
-                    formUsername: '', 
-                    formPassword: '',
-                    isLoading: false
-                });
-            } else {
-                console.log("✅ Login successful:", response.data);
-                
-                this.setState({ 
-                    isLoggedIn: true, 
-                    username: response.data.username,
-                    selectedTeams: response.data.preferences || [],
-                    oneSignalPlayerId: response.data.oneSignalPlayerId || null,
-                    formUsername: '', 
-                    formPassword: '',
-                    isLoading: false
-                });
-
-                this.showMessage(`Welcome back, ${response.data.username}!`, 'success');
-
-                // If OneSignal is ready and permission granted, sync the player ID
-                if (window.OneSignalInitialized && this.state.permissionStatus === 'granted') {
-                    const playerId = await window.OneSignal.getUserId();
-                    if (playerId) {
-                        await this.savePreferences(this.state.selectedTeams, playerId);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error("❌ Auth error:", error);
-            const errorMsg = error.response?.data?.message || 'Authentication failed. Please try again.';
-            this.showMessage(errorMsg, 'error');
-            this.setState({ isLoading: false });
-        }
-    }
-
-    handleLogout = async () => {
-        try {
-            await axios.post(`${API_BASE_URL}/logout`, {}, { withCredentials: true });
-            this.setState({ 
-                isLoggedIn: false, 
-                selectedTeams: [], 
-                username: '',
-                oneSignalPlayerId: null
-            });
-            this.showMessage('Logged out successfully.', 'success');
-            console.log("✅ Logged out");
-        } catch (error) {
-            console.error('❌ Logout failed', error);
-            this.showMessage('Logout failed.', 'error');
-        }
-    }
-
-    toggleTeam = async (team) => {
-        const { selectedTeams } = this.state;
-        const newTeams = selectedTeams.includes(team)
-            ? selectedTeams.filter(t => t !== team)
-            : [...selectedTeams, team];
-        
-        // Optimistically update UI
-        this.setState({ selectedTeams: newTeams });
-        
-        // Save to backend
-        await this.savePreferences(newTeams);
-    }
-
-    savePreferences = async (teams, overrideId = null) => {
-        const playerId = overrideId || this.state.oneSignalPlayerId;
-        
-        this.setState({ isSavingPreferences: true });
-
-        try {
-            const response = await axios.post(`${API_BASE_URL}/preferences`, {
-                teams,
-                oneSignalPlayerId: playerId
-            }, { withCredentials: true });
-
-            console.log("✅ Preferences saved:", response.data);
-            
-            this.setState({ 
-                isSavingPreferences: false,
-                oneSignalPlayerId: response.data.oneSignalPlayerId || playerId
-            });
-            
-            this.showMessage('Preferences updated successfully!', 'success');
-
-        } catch (error) {
-            console.error('❌ Save preferences failed:', error);
-            this.setState({ isSavingPreferences: false });
-            this.showMessage('Failed to save preferences.', 'error');
-        }
-    }
-
-    renderAuthForm() {
-        const { isRegistering, formUsername, formPassword, message, messageType, isLoading } = this.state;
-        
-        return (
-            <div className="max-w-md mx-auto bg-card border border-border p-8 rounded-2xl shadow-2xl">
-                <h2 className="text-3xl font-display font-extrabold text-center mb-6 gradient-text">
-                    {isRegistering ? 'Join Track Wicket' : 'Welcome Back'}
-                </h2>
-                
-                {message && (
-                    <div className={`flex items-center gap-2 p-3 rounded-xl mb-4 text-sm ${
-                        messageType === 'success' 
-                            ? 'bg-green-500/10 text-green-500 border border-green-500/30' 
-                            : 'bg-red-500/10 text-red-500 border border-red-500/30'
-                    }`}>
-                        <AlertCircle size={16} />
-                        <span>{message}</span>
-                    </div>
+    return (
+      <div className="max-w-4xl mx-auto">
+        {/* Permission Banner */}
+        {permissionStatus !== "granted" &&
+          permissionStatus !== "unsupported" && (
+            <div className="bg-primary/10 border border-primary/30 rounded-2xl p-6 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="bg-primary text-white p-3 rounded-full">
+                  <BellRing size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">
+                    Push Notifications Disabled
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Enable permissions to get real-time score updates.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={this.handleRequestPermission}
+                className="btn-futuristic px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isRequestingPermission}
+              >
+                {isRequestingPermission && (
+                  <Loader2 size={16} className="animate-spin" />
                 )}
-                
-                <form onSubmit={this.handleAuthSubmit} className="space-y-4">
-                    <input
-                        type="text"
-                        name="formUsername"
-                        placeholder="Username (min 3 characters)"
-                        value={formUsername}
-                        onChange={this.handleInputChange}
-                        className="w-full p-3 rounded-xl bg-secondary/50 border border-border outline-none text-foreground focus:border-primary transition-colors"
-                        required
-                        disabled={isLoading}
-                        minLength={3}
+                {isRequestingPermission ? "Requesting..." : "Enable Now"}
+              </button>
+            </div>
+          )}
+
+        {permissionStatus === "unsupported" && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-4">
+              <AlertCircle className="text-yellow-500" size={24} />
+              <div>
+                <h3 className="font-bold text-lg">
+                  Push Notifications Not Supported
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Your browser doesn't support push notifications.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {permissionStatus === "blocked" && (
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-4">
+              <AlertCircle className="text-orange-500" size={24} />
+              <div>
+                <h3 className="font-bold text-lg">Ad Blocker Detected</h3>
+                <p className="text-sm text-muted-foreground">
+                  OneSignal is being blocked by your ad blocker or browser
+                  extension. Please disable it for this site to enable
+                  notifications.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-2xl mb-8">
+          <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
+            <div>
+              <h2 className="text-2xl font-bold">Welcome, {username}</h2>
+              <p className="text-sm text-muted-foreground">
+                {this.state.oneSignalPlayerId
+                  ? "✅ Notifications Linked"
+                  : "❌ Not Linked"}
+              </p>
+            </div>
+            <button
+              onClick={this.handleLogout}
+              className="text-red-500 text-sm font-bold hover:underline"
+            >
+              Logout
+            </button>
+          </div>
+
+          {message && (
+            <div
+              className={`flex items-center gap-2 p-3 rounded-xl mb-6 text-sm font-bold ${
+                messageType === "success"
+                  ? "bg-green-500/10 text-green-500 border border-green-500/30"
+                  : "bg-red-500/10 text-red-500 border border-red-500/30"
+              }`}
+            >
+              <AlertCircle size={16} />
+              <span>{message}</span>
+            </div>
+          )}
+
+          {isSavingPreferences && (
+            <div className="flex items-center justify-center gap-2 p-3 rounded-xl mb-6 bg-blue-500/10 text-blue-500 text-sm">
+              <Loader2 size={16} className="animate-spin" />
+              <span>Saving preferences...</span>
+            </div>
+          )}
+
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
+              <Check size={18} /> Subscribed Teams ({selectedTeams.length})
+            </h3>
+            {selectedTeams.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                No teams selected. Add teams below to receive notifications.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {selectedTeams.map((team) => (
+                  <button
+                    key={team}
+                    onClick={() => this.toggleTeam(team)}
+                    className="bg-primary/20 border border-primary/40 p-3 rounded-xl flex justify-between items-center hover:bg-red-500/10 transition-all group"
+                    disabled={isSavingPreferences}
+                  >
+                    <span className="text-sm font-semibold">{team}</span>
+                    <X
+                      size={14}
+                      className="text-red-500 group-hover:scale-125 transition-transform"
                     />
-                    <input
-                        type="password"
-                        name="formPassword"
-                        placeholder="Password (min 6 characters)"
-                        value={formPassword}
-                        onChange={this.handleInputChange}
-                        className="w-full p-3 rounded-xl bg-secondary/50 border border-border outline-none text-foreground focus:border-primary transition-colors"
-                        required
-                        disabled={isLoading}
-                        minLength={6}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-muted-foreground mb-4 flex items-center gap-2">
+              <Shield size={18} /> Available Teams ({unselectedTeams.length})
+            </h3>
+            {unselectedTeams.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                You're subscribed to all available teams!
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {unselectedTeams.map((team) => (
+                  <button
+                    key={team}
+                    onClick={() => this.toggleTeam(team)}
+                    className="bg-secondary/30 border border-border p-3 rounded-xl flex justify-between items-center hover:border-primary transition-all group"
+                    disabled={isSavingPreferences}
+                  >
+                    <span className="text-sm">{team}</span>
+                    <Plus
+                      size={14}
+                      className="group-hover:text-primary transition-colors"
                     />
-                    <button 
-                        type="submit" 
-                        className="w-full btn-futuristic py-3 rounded-xl font-bold mt-2 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={isLoading}
-                    >
-                        {isLoading && <Loader2 size={18} className="animate-spin" />}
-                        {isLoading ? 'Please wait...' : (isRegistering ? 'Register' : 'Login')}
-                    </button>
-                </form>
-                
-                <div className="mt-6 text-center">
-                    <button 
-                        onClick={() => this.setState({ 
-                            isRegistering: !isRegistering, 
-                            message: '', 
-                            messageType: '',
-                            formUsername: '',
-                            formPassword: ''
-                        })}
-                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                        disabled={isLoading}
-                    >
-                        {isRegistering ? 'Already have an account? Login' : "Don't have an account? Register"}
-                    </button>
-                </div>
-            </div>
-        );
-    }
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-    renderNotificationSettings() {
-        const { 
-            username, 
-            selectedTeams, 
-            allAvailableTeams, 
-            message, 
-            messageType,
-            permissionStatus,
-            isSavingPreferences,
-            isRequestingPermission
-        } = this.state;
-        
-        const unselectedTeams = allAvailableTeams.filter(team => !selectedTeams.includes(team));
-
-        return (
-            <div className="max-w-4xl mx-auto">
-                {/* Permission Banner */}
-                {permissionStatus !== 'granted' && permissionStatus !== 'unsupported' && (
-                    <div className="bg-primary/10 border border-primary/30 rounded-2xl p-6 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="bg-primary text-white p-3 rounded-full">
-                                <BellRing size={24} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-lg">Push Notifications Disabled</h3>
-                                <p className="text-sm text-muted-foreground">Enable permissions to get real-time score updates.</p>
-                            </div>
-                        </div>
-                        <button 
-                            onClick={this.handleRequestPermission} 
-                            className="btn-futuristic px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={isRequestingPermission}
-                        >
-                            {isRequestingPermission && <Loader2 size={16} className="animate-spin" />}
-                            {isRequestingPermission ? 'Requesting...' : 'Enable Now'}
-                        </button>
-                    </div>
-                )}
-
-                {permissionStatus === 'unsupported' && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-6 mb-6">
-                        <div className="flex items-center gap-4">
-                            <AlertCircle className="text-yellow-500" size={24} />
-                            <div>
-                                <h3 className="font-bold text-lg">Push Notifications Not Supported</h3>
-                                <p className="text-sm text-muted-foreground">Your browser doesn't support push notifications.</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="bg-card border border-border rounded-2xl p-6 shadow-2xl mb-8">
-                    <div className="flex justify-between items-center mb-6 border-b border-border pb-4">
-                        <div>
-                            <h2 className="text-2xl font-bold">Welcome, {username}</h2>
-                            <p className="text-sm text-muted-foreground">
-                                {this.state.oneSignalPlayerId ? "✅ Notifications Linked" : "❌ Not Linked"}
-                            </p>
-                        </div>
-                        <button 
-                            onClick={this.handleLogout} 
-                            className="text-red-500 text-sm font-bold hover:underline"
-                        >
-                            Logout
-                        </button>
-                    </div>
-
-                    {message && (
-                        <div className={`flex items-center gap-2 p-3 rounded-xl mb-6 text-sm font-bold ${
-                            messageType === 'success' 
-                                ? 'bg-green-500/10 text-green-500 border border-green-500/30' 
-                                : 'bg-red-500/10 text-red-500 border border-red-500/30'
-                        }`}>
-                            <AlertCircle size={16} />
-                            <span>{message}</span>
-                        </div>
-                    )}
-
-                    {isSavingPreferences && (
-                        <div className="flex items-center justify-center gap-2 p-3 rounded-xl mb-6 bg-blue-500/10 text-blue-500 text-sm">
-                            <Loader2 size={16} className="animate-spin" />
-                            <span>Saving preferences...</span>
-                        </div>
-                    )}
-
-                    <div className="mb-8">
-                        <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                            <Check size={18} /> Subscribed Teams ({selectedTeams.length})
-                        </h3>
-                        {selectedTeams.length === 0 ? (
-                            <p className="text-muted-foreground text-sm">No teams selected. Add teams below to receive notifications.</p>
-                        ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {selectedTeams.map(team => (
-                                    <button 
-                                        key={team} 
-                                        onClick={() => this.toggleTeam(team)} 
-                                        className="bg-primary/20 border border-primary/40 p-3 rounded-xl flex justify-between items-center hover:bg-red-500/10 transition-all group"
-                                        disabled={isSavingPreferences}
-                                    >
-                                        <span className="text-sm font-semibold">{team}</span>
-                                        <X size={14} className="text-red-500 group-hover:scale-125 transition-transform" />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <h3 className="text-lg font-bold text-muted-foreground mb-4 flex items-center gap-2">
-                            <Shield size={18} /> Available Teams ({unselectedTeams.length})
-                        </h3>
-                        {unselectedTeams.length === 0 ? (
-                            <p className="text-muted-foreground text-sm">You're subscribed to all available teams!</p>
-                        ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {unselectedTeams.map(team => (
-                                    <button 
-                                        key={team} 
-                                        onClick={() => this.toggleTeam(team)} 
-                                        className="bg-secondary/30 border border-border p-3 rounded-xl flex justify-between items-center hover:border-primary transition-all group"
-                                        disabled={isSavingPreferences}
-                                    >
-                                        <span className="text-sm">{team}</span>
-                                        <Plus size={14} className="group-hover:text-primary transition-colors" />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    render() {
-        return (
-            <div className="min-h-screen bg-background">
-                <Navbar theme={this.props.theme} toggleTheme={this.props.toggleTheme} />
-                <div className="container mx-auto px-4 py-8">
-                    <h1 className="text-4xl font-display font-extrabold text-center mb-8 gradient-text">
-                        Notification Center
-                    </h1>
-                    {this.state.isLoggedIn ? this.renderNotificationSettings() : this.renderAuthForm()}
-                </div>
-            </div>
-        );
-    }
+  render() {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar theme={this.props.theme} toggleTheme={this.props.toggleTheme} />
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-4xl font-display font-extrabold text-center mb-8 gradient-text">
+            Notification Center
+          </h1>
+          {this.state.isLoggedIn
+            ? this.renderNotificationSettings()
+            : this.renderAuthForm()}
+        </div>
+      </div>
+    );
+  }
 }
 
 export default NotificationComponent;

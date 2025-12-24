@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import OneSignal from 'react-onesignal';
 import Home from './Home';
 import LiveDetails from './LiveDetails';
 import ScorecardPage from './ScorecardPage';
@@ -29,50 +30,52 @@ function App() {
   useEffect(() => {
     const initOneSignal = async () => {
       try {
-        // Wait for OneSignal script to load
-        if (!window.OneSignal) {
-          console.log("⏳ Waiting for OneSignal to load...");
-          // Retry after a delay
-          setTimeout(initOneSignal, 500);
-          return;
-        }
-
-        // Check if already initialized
-        if (window.OneSignalInitialized) {
-          console.log("✅ OneSignal already initialized");
-          setOneSignalReady(true);
-          return;
-        }
-
-        console.log("🚀 Initializing OneSignal...");
+        console.log("🚀 Initializing OneSignal via NPM...");
         
-        await window.OneSignal.init({
-          appId: process.env.REACT_APP_ONE_SIGNAL_APP_ID,
+        await OneSignal.init({
+          appId: process.env.REACT_APP_ONESIGNAL_APP_ID,
           allowLocalhostAsSecureOrigin: true,
-          notifyButton: { enabled: false },
-          // Automatically show prompt on first visit (optional)
-          // autoResubscribe: true,
-          // autoRegister: false, // We'll manually trigger it from Notification page
+          notifyButton: {
+            enable: false, // We use custom UI
+          },
+          // Safari-specific settings
+          safari_web_id: 'web.onesignal.auto.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // Optional: Add if you have Safari Web ID
         });
 
-        // Mark as initialized
-        window.OneSignalInitialized = true;
+        // Wait for OneSignal to be fully ready
+        await OneSignal.setSubscription(false); // Don't auto-subscribe
+
         setOneSignalReady(true);
-        
         console.log("✅ OneSignal Initialized Successfully");
 
-        // Log current subscription status
-        const isPushSupported = await window.OneSignal.isPushNotificationsSupported();
-        const permission = await window.OneSignal.getNotificationPermission();
+        // Log current status
+        const isPushSupported = await OneSignal.isPushNotificationsSupported();
+        const permission = await OneSignal.getNotificationPermission();
+        const userId = await OneSignal.getUserId();
+        
         console.log("📱 Push Supported:", isPushSupported);
-        console.log("🔔 Permission Status:", permission);
+        console.log("🔔 Permission:", permission);
+        console.log("👤 User ID:", userId);
 
-      } catch (e) {
-        console.error("❌ OneSignal Init Error:", e);
-        // Retry once after error
+        // Listen for permission changes
+        OneSignal.on('subscriptionChange', function(isSubscribed) {
+          console.log("📡 Subscription changed:", isSubscribed);
+        });
+
+        OneSignal.on('notificationPermissionChange', function(permissionChange) {
+          console.log("🔔 Permission changed:", permissionChange);
+        });
+
+      } catch (error) {
+        console.error("❌ OneSignal Init Error:", error);
+        
+        // Retry once after 2 seconds
         if (!window.OneSignalInitRetried) {
           window.OneSignalInitRetried = true;
-          setTimeout(initOneSignal, 1000);
+          console.log("🔄 Retrying OneSignal initialization...");
+          setTimeout(initOneSignal, 2000);
+        } else {
+          console.error("❌ OneSignal initialization failed permanently");
         }
       }
     };
