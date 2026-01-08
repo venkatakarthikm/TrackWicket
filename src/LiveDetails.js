@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import Navbar from "./Navbar";
 import axios from 'axios'; // NEW: Required for API call
+import Loader from "./Loader";
 
 const getFormatBadgeColor = (format) => {
   switch (format?.toUpperCase()) {
@@ -982,10 +983,9 @@ const LiveDetails = ({ theme, toggleTheme }) => {
   if (loading || error || !matchData || !matchData.matchHeader) {
     if (loading)
       return (
-        <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mb-4"></div>
-          <p className="text-foreground text-lg">Loading match details...</p>
-        </div>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+      <Loader />
+    </div>
       );
     if (error || !matchData || !matchData.matchHeader)
       return (
