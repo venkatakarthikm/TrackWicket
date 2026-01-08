@@ -9,7 +9,7 @@
     <meta name="description" content="Get real-time, ball-by-ball updates and live scores for all international and domestic cricket matches. Never miss a six, four, or wicket with Track Wicket." />
     <meta name="keywords" content="cricket live score, live cricket match, cricket news, ball by ball, cricket schedule, Track Wicket, ODI, T20, Test" />
     <meta name="author" content="Track Wicket Team" />
-    <link rel="canonical" href="https://yourwebsite.com" />
+    <link rel="canonical" href="https://trackwicket.onrender.com/" />
     <meta name="theme-color" content="#3700B3" />
 
     <!-- FAVICON & APP ICONS (Fixing the React Icon Issue) -->
@@ -23,7 +23,7 @@
     <meta property="og:title" content="Track Wicket | Live Cricket Scores, News & Updates" />
     <meta property="og:description" content="Get real-time, ball-by-ball updates and live scores for all cricket matches. Never miss a six, four, or wicket." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://yourwebsite.com" />
+    <meta property="og:url" content="https://trackwicket.onrender.com/" />
     <meta property="og:image" content="TW.png" />
     <meta property="og:site_name" content="Track Wicket" />
     <meta property="og:locale" content="en_US" />
@@ -42,13 +42,22 @@
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Track Wicket",
-      "url": "https://yourwebsite.com",
+      "url": "https://trackwicket.onrender.com/",
       "logo": "TW.png",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://yourwebsite.com/live?search={search_term_string}",
+        "target": "https://trackwicket.onrender.com/live?search={search_term_string}",
         "query-input": "required name=search_term_string"
-      }
+      },
+    {
+      "@type": "SearchAction",
+      "name": "Player Search",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://trackwicket.onrender.com/players?search={player_name}"
+      },
+      "query-input": "required name=player_name"
+    }
     }
     </script>
 

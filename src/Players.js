@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useSearchParams } from 'react-router-dom';
 import Navbar from './Navbar';
 import Loading from './Loading';
 import { Search, User, ChevronRight, Users } from 'lucide-react';
@@ -20,12 +20,15 @@ const getInitialTheme = () => {
 };
 
 const Players = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlQuery = searchParams.get('search') || '';
+  const [searchQuery, setSearchQuery] = useState(urlQuery);
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('Start typing a player name to search.');
   const [theme, setTheme] = useState(getInitialTheme);
   const navigate = useNavigate();
+  
 
   useEffect(() => {
     document.title = "Search Players - Track Wicket";
@@ -70,6 +73,14 @@ const Players = () => {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setSearchParams({ search: searchQuery }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchQuery, setSearchParams]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
