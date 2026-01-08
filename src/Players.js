@@ -144,7 +144,7 @@ const Players = () => {
           {/* Loading State */}
           {loading && (
             <div className="py-8">
-              <Loading message="Searching players..." size="small" />
+              <Loading message="TRACKWICKET" size="small" />
             </div>
           )}
 
