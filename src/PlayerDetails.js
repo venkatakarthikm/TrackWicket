@@ -76,7 +76,7 @@ const PlayerDetails = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <Navbar theme={theme} toggleTheme={toggleTheme} searchQuery="" setSearchQuery={() => {}} />
         <div className="flex-1 flex items-center justify-center">
-          <Loading message="Loading player profile..." />
+          <Loading message="TRACKWICKET" />
         </div>
       </div>
     );
