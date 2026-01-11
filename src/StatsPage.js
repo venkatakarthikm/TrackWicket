@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import { Loader2, AlertTriangle, BarChart3, ChevronDown } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 // Utility function to create a clean slug from a player name for the URL
 const createSlug = (text) => {
@@ -21,7 +22,11 @@ const StatsPage = ({ theme, toggleTheme }) => {
     
     // Default to 'all' for API call since the filter is removed
     const currentYear = 'all'; 
+    const location = useLocation();
+    
+    // ... (keep state management and titles mapping)
     const currentFormat = formatSlug || 'odi';
+    const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
     
     // Static mapping for display purposes
     const statTitleMap = {
@@ -61,7 +66,15 @@ const StatsPage = ({ theme, toggleTheme }) => {
     useEffect(() => {
         const title = statTitleMap[statSlug] || 'Cricket Records';
         document.title = `${title} - ${currentFormat.toUpperCase()} - Track Wicket`;
+        
     }, [statSlug, currentFormat]);
+
+    const displayStatName = statTitleMap[statSlug] || 'Cricket Records';
+    const displayFormat = currentFormat.toUpperCase();
+
+    // SEO Dynamic Content
+    const dynamicTitle = `${displayStatName} in ${displayFormat} | All-Time Cricket Records - Track Wicket`;
+    const dynamicDesc = `Explore the official list of players with the ${displayStatName} in ${displayFormat} cricket history. View detailed statistics, averages, and player rankings on Track Wicket.`;
     
     // Fetch stats data
     const fetchStats = useCallback(async () => {
@@ -161,6 +174,38 @@ const StatsPage = ({ theme, toggleTheme }) => {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
+            <Helmet>
+                {/* Standard SEO */}
+                <title>{dynamicTitle}</title>
+                <meta name="description" content={dynamicDesc} />
+                <link rel="canonical" href={currentUrl} />
+                <meta name="keywords" content={`cricket stats, ${displayStatName}, ${displayFormat} records, top cricket players, cricket history data`} />
+
+                {/* Open Graph / Facebook */}
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content={dynamicTitle} />
+                <meta property="og:description" content={dynamicDesc} />
+                <meta property="og:url" content={currentUrl} />
+                <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+
+                {/* Twitter Card */}
+                <meta name="twitter:card" content="summary" />
+                <meta name="twitter:title" content={dynamicTitle} />
+                <meta name="twitter:description" content={dynamicDesc} />
+
+                {/* Dataset Schema (Tells Google this is high-value data) */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "Dataset",
+                        "name": dynamicTitle,
+                        "description": dynamicDesc,
+                        "url": currentUrl,
+                        "isAccessibleForFree": true,
+                        "variableMeasured": displayStatName
+                    })}
+                </script>
+            </Helmet>
             <Navbar theme={theme} toggleTheme={toggleTheme} searchQuery={''} setSearchQuery={() => {}} isMatchDetails={false} />
 
             <main className="flex-1 container mx-auto px-4 py-8">

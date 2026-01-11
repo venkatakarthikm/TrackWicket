@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { ChevronLeft, Trophy, Clock, ChevronDown, ChevronUp, NotebookPen, Table, Activity } from 'lucide-react'; 
 import Navbar from './Navbar';
+import { Helmet } from 'react-helmet-async';
 
 const getFormatBadgeColor = (format) => {
     switch (format?.toUpperCase()) {
@@ -349,10 +350,21 @@ const ScorecardPage = ({ theme, toggleTheme }) => { // Accepting theme props
     const [liveData, setLiveData] = useState(null); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+    const location = useLocation();
     const intervalRef = useRef(null);
     const isMountedRef = useRef(true);
     const prevDataRef = useRef({ scorecard: null, live: null });
+    // Extracting info for SEO
+    const matchHeader = liveData?.matchHeader;
+    const team1Name = matchHeader?.team1?.name || 'Team 1';
+    const team2Name = matchHeader?.team2?.name || 'Team 2';
+    const matchDesc = matchHeader?.matchDescription || 'Cricket Match';
+    const seriesName = matchHeader?.seriesName || 'International Cricket';
+    const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
+
+    // SEO Dynamic content
+    const dynamicTitle = `${team1Name} vs ${team2Name} Full Scorecard - ${matchDesc} | Track Wicket`;
+    const dynamicDesc = `View the full scorecard of ${team1Name} vs ${team2Name} ${matchDesc}. Detailed batting, bowling stats, fall of wickets, and partnerships for the ${seriesName}.`;
     
     // Update page title
     useEffect(() => {
@@ -462,7 +474,7 @@ const ScorecardPage = ({ theme, toggleTheme }) => { // Accepting theme props
          );
     }
 
-    const { matchHeader, miniscore } = liveData;
+    const { miniscore } = liveData;
     const allInnings = miniscore?.matchScoreDetails?.inningsScoreList || [];
     const displayScore1 = allInnings.find(i => i.inningsId === 1) || null;
     const displayScore2 = allInnings.find(i => i.inningsId === 2) || null;
@@ -471,6 +483,45 @@ const ScorecardPage = ({ theme, toggleTheme }) => { // Accepting theme props
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
+            <Helmet>
+                {/* Standard SEO */}
+                <title>{dynamicTitle}</title>
+                <meta name="description" content={dynamicDesc} />
+                <link rel="canonical" href={currentUrl} />
+                <meta name="keywords" content={`${team1Name} vs ${team2Name} scorecard, ${seriesName} live, cricket stats, match result, batting card`} />
+
+                {/* Open Graph / Facebook */}
+                <meta property="og:type" content="article" />
+                <meta property="og:title" content={dynamicTitle} />
+                <meta property="og:description" content={dynamicDesc} />
+                <meta property="og:url" content={currentUrl} />
+                <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+
+                {/* Twitter Card */}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={dynamicTitle} />
+                <meta name="twitter:description" content={dynamicDesc} />
+
+                {/* SportsEvent Structured Data (Crucial for Google Sports Snippets) */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "SportsEvent",
+                        "name": `${team1Name} vs ${team2Name} - ${matchDesc}`,
+                        "description": dynamicDesc,
+                        "startDate": matchHeader?.matchStartTimestamp,
+                        "location": {
+                            "@type": "Place",
+                            "name": matchHeader?.venue
+                        },
+                        "competitor": [
+                            { "@type": "SportsTeam", "name": team1Name },
+                            { "@type": "SportsTeam", "name": team2Name }
+                        ],
+                        "eventStatus": matchHeader?.state === 'Complete' ? "https://schema.org/EventPostponed" : "https://schema.org/EventScheduled"
+                    })}
+                </script>
+            </Helmet>
             <Navbar theme={theme} toggleTheme={toggleTheme} searchQuery={''} setSearchQuery={() => {}} isMatchDetails={true} />
 
             <main className="flex-1">

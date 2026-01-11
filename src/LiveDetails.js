@@ -28,6 +28,7 @@ import {
 import Navbar from "./Navbar";
 import axios from 'axios'; // NEW: Required for API call
 import Loader from "./Loader";
+import { HelmetProvider } from 'react-helmet-async';
 
 const getFormatBadgeColor = (format) => {
   switch (format?.toUpperCase()) {

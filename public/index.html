@@ -4,60 +4,70 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     
-    <!-- PRIMARY SEO META TAGS -->
-    <title>Track Wicket | Live Cricket Scores, News & Updates</title>
-    <meta name="description" content="Get real-time, ball-by-ball updates and live scores for all international and domestic cricket matches. Never miss a six, four, or wicket with Track Wicket." />
+    <link rel="preconnect" href="https://cdn.onesignal.com">
+    <link rel="preconnect" href="https://challenges.cloudflare.com">
+    <link rel="preconnect" href="https://www.cricbuzz.com">
+
+    <title>Track Wicket | Live Cricket Scores, News & Stats</title>
+    <meta name="description" content="Fastest live cricket scores, ball-by-ball commentary, player rankings, and detailed match statistics. Follow IPL, ICC World Cup, and International matches in real-time." />
     <meta name="keywords" content="cricket live score, live cricket match, cricket news, ball by ball, cricket schedule, Track Wicket, ODI, T20, Test" />
     <meta name="author" content="Track Wicket Team" />
     <link rel="canonical" href="https://trackwicket.onrender.com/" />
     <meta name="theme-color" content="#3700B3" />
 
-    <!-- FAVICON & APP ICONS (Fixing the React Icon Issue) -->
-    <!-- Prioritize the favicon link -->
-    <link rel="icon" href="twmini.png" type="image/png" sizes="32x32" />
-    <link rel="icon" href="TW.png" type="image/x-icon" /> 
-    <link rel="apple-touch-icon" href="TW.png" />
-    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="%PUBLIC_URL%/twmini.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="%PUBLIC_URL%/TW.png" type="image/x-icon" /> 
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/TW.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- OPEN GRAPH (Facebook, LinkedIn, etc.) -->
-    <meta property="og:title" content="Track Wicket | Live Cricket Scores, News & Updates" />
-    <meta property="og:description" content="Get real-time, ball-by-ball updates and live scores for all cricket matches. Never miss a six, four, or wicket." />
+    <meta property="og:title" content="Track Wicket | Live Cricket Scores & Updates" />
+    <meta property="og:description" content="Get real-time, ball-by-ball updates and live scores for all cricket matches. Never miss a wicket." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://trackwicket.onrender.com/" />
-    <meta property="og:image" content="TW.png" />
+    <meta property="og:image" content="%PUBLIC_URL%/TW.png" />
     <meta property="og:site_name" content="Track Wicket" />
-    <meta property="og:locale" content="en_US" />
 
-    <!-- TWITTER CARD -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@TrackWicket" />
-    <meta name="twitter:creator" content="@TrackWicket" />
     <meta name="twitter:title" content="Track Wicket | Live Cricket Scores" />
     <meta name="twitter:description" content="Real-time, ball-by-ball updates for all major cricket tournaments." />
-    <meta name="twitter:image" content="TW.png" /> 
+    <meta name="twitter:image" content="%PUBLIC_URL%/TW.png" /> 
     
-    <!-- STRUCTURED DATA (JSON-LD) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Track Wicket",
-      "url": "https://trackwicket.onrender.com/",
-      "logo": "TW.png",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://trackwicket.onrender.com/live?search={search_term_string}",
-        "query-input": "required name=search_term_string"
-      },
-    {
-      "@type": "SearchAction",
-      "name": "Player Search",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": "https://trackwicket.onrender.com/players?search={player_name}"
-      },
-      "query-input": "required name=player_name"
-    }
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Track Wicket",
+          "url": "https://trackwicket.onrender.com/",
+          "logo": "https://trackwicket.onrender.com/TW.png",
+          "sameAs": [
+            "https://twitter.com/TrackWicket"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "name": "Track Wicket",
+          "url": "https://trackwicket.onrender.com/",
+          "potentialAction": [
+            {
+              "@type": "SearchAction",
+              "target": "https://trackwicket.onrender.com/live?search={search_term_string}",
+              "query-input": "required name=search_term_string"
+            },
+            {
+              "@type": "SearchAction",
+              "name": "Player Search",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://trackwicket.onrender.com/players?search={player_name}"
+              },
+              "query-input": "required name=player_name"
+            }
+          ]
+        }
+      ]
     }
     </script>
 
@@ -66,7 +76,7 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
 
-    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js"></script> 
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script> 
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </body>
 </html>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, memo } from "react";
 import { Trophy, User, Users, Calendar, ChevronRight } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Loading from "./Loading";
+import { Helmet } from 'react-helmet-async';
 
 // --- RANKING POSTER COMPONENT ---
 const RankingPoster = ({ player, isFirst }) => {
@@ -145,6 +146,16 @@ const RankingPoster = ({ player, isFirst }) => {
 // --- PLAYER RANKINGS CONTENT COMPONENT ---
 const PlayerRankingsContent = ({ gender, role, formatFromUrl }) => {
   const [format, setFormat] = useState(formatFromUrl || "odi");
+  const location = useLocation();
+
+  // Dynamic SEO Logic
+  const roleName = role.charAt(0).toUpperCase() + role.slice(1);
+  const genderName = gender.charAt(0).toUpperCase() + gender.slice(1);
+  const formatName = format.toUpperCase();
+  const dynamicTitle = `ICC ${genderName} ${formatName} ${roleName} Rankings | Track Wicket`;
+  const dynamicDesc = `Latest ICC ${genderName} cricket rankings for ${roleName} in ${formatName} format. View top-ranked players, current points, and rating changes on Track Wicket.`;
+  const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
+
   const [date, setDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - ((d.getDay() + 3) % 7));
@@ -183,6 +194,34 @@ const PlayerRankingsContent = ({ gender, role, formatFromUrl }) => {
 
   return (
     <div className="space-y-12 pb-20">
+      <Helmet>
+        {/* Standard SEO */}
+        <title>{dynamicTitle}</title>
+        <meta name="description" content={dynamicDesc} />
+        <link rel="canonical" href={currentUrl} />
+        <meta name="keywords" content={`icc rankings, ${gender} ${role}, ${format} rankings, top 10 batsmen, top 10 bowlers, cricket ratings`} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={dynamicTitle} />
+        <meta property="og:description" content={dynamicDesc} />
+        <meta property="og:url" content={currentUrl} />
+        <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={dynamicTitle} />
+        <meta name="twitter:description" content={dynamicDesc} />
+
+        {/* Table Schema (Helps Google understand this is a data list) */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Table",
+            "about": `ICC ${genderName} ${roleName} Rankings for ${formatName}`
+          })}
+        </script>
+      </Helmet>
       <div className="flex flex-col gap-4 bg-card border p-2 rounded-3xl lg:flex-row lg:justify-between items-center shadow-sm">
         <div className="flex bg-secondary/40 p-1 rounded-2xl w-full lg:w-auto">
           {formats.map((f) => (
@@ -263,6 +302,11 @@ const Rankings = ({ theme, toggleTheme }) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      <Helmet>
+        <title>ICC Cricket Player & Team Rankings | Track Wicket</title>
+        <meta name="description" content="Official ICC Cricket rankings for Test, ODI, and T20I. Check player standings for batsmen, bowlers, and all-rounders." />
+      </Helmet>
+      
       <Navbar theme={theme} toggleTheme={toggleTheme} />
 
       <div className="flex flex-col md:flex-row flex-1">

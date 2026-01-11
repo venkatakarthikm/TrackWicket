@@ -3,6 +3,7 @@ import { useNavigate,useSearchParams } from 'react-router-dom';
 import Navbar from './Navbar';
 import Loading from './Loading';
 import { Search, User, ChevronRight, Users } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
 const createSlug = (text) => {
   if (!text) return 'unknown';
@@ -28,6 +29,16 @@ const Players = () => {
   const [message, setMessage] = useState('Start typing a player name to search.');
   const [theme, setTheme] = useState(getInitialTheme);
   const navigate = useNavigate();
+
+  // Dynamic SEO Logic
+  const currentUrl = `https://trackwicket.onrender.com/players${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`;
+  const dynamicTitle = searchQuery 
+    ? `Search results for "${searchQuery}" | Cricket Players - Track Wicket`
+    : "Search Cricket Player Profiles & Career Stats | Track Wicket";
+
+    const dynamicDesc = searchQuery
+    ? `Find career statistics, rankings, and personal details for "${searchQuery}" and other professional cricketers on Track Wicket.`
+    : "Browse our comprehensive database of international and domestic cricket players. Get detailed stats, images, and career history for all your favorite cricketers.";
   
 
   useEffect(() => {
@@ -110,6 +121,45 @@ const Players = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        {/* Standard SEO */}
+        <title>{dynamicTitle}</title>
+        <meta name="description" content={dynamicDesc} />
+        <link rel="canonical" href={currentUrl} />
+        <meta name="keywords" content="cricket player search, player stats, cricket career history, player profile, find cricketer, track wicket players" />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={dynamicTitle} />
+        <meta property="og:description" content={dynamicDesc} />
+        <meta property="og:url" content={currentUrl} />
+        <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+        <meta property="og:site_name" content="Track Wicket" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={dynamicTitle} />
+        <meta name="twitter:description" content={dynamicDesc} />
+        <meta name="twitter:image" content="https://trackwicket.onrender.com/TW.png" />
+        <meta name="twitter:site" content="@TrackWicket" />
+
+        {/* Search Action Schema (Helps Google understand this is a search page) */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SearchResultsPage",
+            "mainEntity": {
+              "@type": "ItemList",
+              "itemListElement": players.slice(0, 10).map((p, i) => ({
+                "@type": "ListItem",
+                "position": i + 1,
+                "name": p.name,
+                "url": `https://trackwicket.onrender.com/player/${createSlug(p.name)}/${p.id}`
+              }))
+            }
+          })}
+        </script>
+      </Helmet>
       <Navbar theme={theme} toggleTheme={toggleTheme} searchQuery="" setSearchQuery={() => {}} />
 
       <main className="flex-1 container mx-auto px-4 py-8">

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, memo } from "react";
 import { Search, Trophy, ArrowRight, ChevronLeft, Zap } from "lucide-react";
 import { Link, useLocation } from 'react-router-dom'; // Import useLocation
 import Navbar from './Navbar'; 
+import { Helmet } from 'react-helmet-async';
 
 const createSlug = (text) => {
     if (!text) return 'unknown';
@@ -40,6 +41,12 @@ const Home = ({ type = 'live' }) => {
   const [currentSeries, setCurrentSeries] = useState(null);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isLive = type === 'live';
+  const pageTitle = isLive ? 'Live Cricket Scores & Ball-by-Ball Commentary' : 'Recent Cricket Match Results & Highlights';
+  const pageDesc = isLive 
+    ? "Get fastest live cricket scores, ball-by-ball commentary, and real-time updates for IPL, World Cup, and all international matches."
+    : "Catch up on recent cricket match results, scorecards, and series summaries. Never miss the action with Track Wicket.";
+  const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
   
   // FIX: Initialize searchQuery by CALLING the function immediately
   // This ensures the state holds the value from the URL on the very first render.
@@ -540,6 +547,47 @@ const Home = ({ type = 'live' }) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Helmet>
+        {/* Standard SEO */}
+        <title>{`${pageTitle} - Track Wicket`}</title>
+        <meta name="description" content={pageDesc} />
+        <link rel="canonical" href={currentUrl} />
+        <meta name="keywords" content={`cricket, ${isLive ? 'live score, t20 live, ipl live' : 'match results, cricket highlights'}, track wicket, ball by ball`} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`${pageTitle} | Track Wicket`} />
+        <meta property="og:description" content={pageDesc} />
+        <meta property="og:url" content={currentUrl} />
+        <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+        <meta property="og:site_name" content="Track Wicket" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDesc} />
+        <meta name="twitter:image" content="https://trackwicket.onrender.com/TW.png" />
+        <meta name="twitter:site" content="@TrackWicket" />
+
+        {/* Dynamic Structured Data for Search Engines */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": pageTitle,
+            "description": pageDesc,
+            "publisher": {
+              "@type": "Organization",
+              "name": "Track Wicket",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://trackwicket.onrender.com/TW.png"
+              }
+            }
+          })}
+        </script>
+      </Helmet>
+
       <Navbar
         theme={theme}
         toggleTheme={toggleTheme}

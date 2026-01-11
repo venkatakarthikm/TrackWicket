@@ -390,7 +390,7 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
               <NavLinkItem to="/recent" icon={Clock} isActive={isActive('/recent')} isScrolled={isScrolled}>
                 Recent
               </NavLinkItem>
-              <NavLinkItem to="/rankings" icon={ListOrdered} isActive={isActive('/rankings')} isScrolled={isScrolled}>
+              <NavLinkItem to="/rankings" icon={ListOrdered} isActive={window.location.pathname.startsWith('/rankings')} isScrolled={isScrolled}>
                 Rankings
               </NavLinkItem>
               <DropdownMenu 

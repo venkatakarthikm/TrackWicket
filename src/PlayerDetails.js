@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import Loading from './Loading';
 import { ChevronLeft, User, Trophy, Calendar, Zap, ListOrdered, Clock, Heart, Flag, AlertTriangle } from 'lucide-react'; 
+import { Helmet } from 'react-helmet-async';
 
 const getInitialTheme = () => {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -157,8 +158,68 @@ const PlayerDetails = () => {
 
     const statNames = Object.keys(stats[formats[0]]);
 
+    const { 
+    player_name, 
+    country, 
+    personal_information, 
+    batting_career_summary, 
+    bowling_career_summary, 
+    icc_rankings, 
+    career_information,
+    role 
+  } = profileData || {};
+
+  const info = personal_information || {};
+  const displayName = player_name || navigationState.playerName || 'Cricket Player';
+  const displayCountry = country || navigationState.teamName || 'International';
+  const playerRole = role || info.role || 'Professional Cricketer';
+  const faceImageId = info.face_image_id || navigationState.faceImageId || 0;
+  const playerImageUrl = getPlayerImageUrl(faceImageId);
+  const currentUrl = window.location.href;
+
     return (
       <div className="glass-card rounded-2xl overflow-hidden mb-6">
+        <Helmet>
+        {/* Standard SEO */}
+        <title>{`${displayName} Profile | Stats, Rankings & Career - Track Wicket`}</title>
+        <meta name="description" content={`View ${displayName}'s full cricket profile. Career batting average, bowling stats, latest ICC rankings, and debut details for ${displayCountry}.`} />
+        <link rel="canonical" href={currentUrl} />
+
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:title" content={`${displayName} (${displayCountry}) | Cricket Stats`} />
+        <meta property="og:description" content={`Full career summary and ICC rankings for ${displayName}. Follow live cricket updates on Track Wicket.`} />
+        <meta property="og:image" content={playerImageUrl} />
+        <meta property="og:url" content={currentUrl} />
+        <meta property="og:site_name" content="Track Wicket" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${displayName} - ${playerRole}`} />
+        <meta name="twitter:description" content={`Explore stats and career history for ${displayName} on Track Wicket.`} />
+        <meta name="twitter:image" content={playerImageUrl} />
+        <meta name="twitter:site" content="@TrackWicket" />
+
+        {/* Structured Data (JSON-LD) for Google Rich Results */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            "name": displayName,
+            "jobTitle": playerRole,
+            "nationality": {
+              "@type": "Country",
+              "name": displayCountry
+            },
+            "image": playerImageUrl,
+            "description": `${displayName} is a ${playerRole} representing ${displayCountry}.`,
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": currentUrl
+            }
+          })}
+        </script>
+      </Helmet>
         <div className="flex items-center gap-3 p-5 bg-gradient-to-r from-primary/10 to-accent/10 border-b border-border">
           <Icon size={24} className="text-primary" />
           <h3 className="text-xl font-bold text-foreground">{title}</h3>

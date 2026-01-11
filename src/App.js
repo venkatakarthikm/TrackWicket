@@ -17,6 +17,7 @@ import Privacy from "./Privacy";
 import Terms from "./Terms";
 import NotFound from "./NotFound.js";
 import Rankings from "./Rankings.js";
+import { HelmetProvider } from 'react-helmet-async';
 
 const getInitialTheme = () => {
   if (typeof window !== "undefined" && window.localStorage) {
@@ -69,11 +70,12 @@ function App() {
   const themeProps = { theme, toggleTheme };
 
   return (
-    <Router>
-      <div className="App min-h-screen flex flex-col">
-        <Routes>
-          <Route path="/" element={<Navigate to="/live" replace />} />
-          <Route path="/live" element={<Home type="live" {...themeProps} />} />
+    <HelmetProvider>
+      <Router>
+        <div className="App min-h-screen flex flex-col">
+          <Routes>
+            <Route path="/" element={<Navigate to="/live" replace />} />
+            <Route path="/live" element={<Home type="live" {...themeProps} />} />
           <Route
             path="/recent"
             element={<Home type="recent" {...themeProps} />}
@@ -130,6 +132,7 @@ function App() {
         <Footer />
       </div>
     </Router>
+    </HelmetProvider>
   );
 }
 
