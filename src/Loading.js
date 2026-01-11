@@ -1,6 +1,5 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 
-// Custom CSS for the specific Uiverse animation
 const AnimationStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
@@ -16,8 +15,22 @@ const AnimationStyles = () => (
       font-size: 1.6em;
       font-weight: 600;
       user-select: none;
-      color: #fff;
-      /* We handle scaling via tailwind for better layout control */
+      /* Theme-dependent text color */
+      color: var(--loader-text);
+    }
+
+    /* Light Theme Variables */
+    :root {
+      --loader-text: #1a1a1a;
+      --loader-glow: rgba(0, 0, 0, 0.2);
+      --loader-scan-opacity: 0.4;
+    }
+
+    /* Dark Theme Variables */
+    .dark :root, .dark {
+      --loader-text: #ffffff;
+      --loader-glow: rgba(255, 255, 255, 0.8);
+      --loader-scan-opacity: 1;
     }
 
     .loader {
@@ -46,9 +59,9 @@ const AnimationStyles = () => (
       height: 100%;
       background-image: radial-gradient(circle at 50% 50%, #ff0 0%, transparent 50%),
         radial-gradient(circle at 45% 45%, #f00 0%, transparent 45%),
-        radial-gradient(circle at 55% 55%, #0ff 0%, transparent 45%),
-        radial-gradient(circle at 45% 55%, #0f0 0%, transparent 45%),
-        radial-gradient(circle at 55% 45%, #00f 0%, transparent 45%);
+        radial-gradient(circle at 55% 55%, #0ea5e9 0%, transparent 45%),
+        radial-gradient(circle at 45% 55%, #22c55e 0%, transparent 45%),
+        radial-gradient(circle at 55% 45%, #6366f1 0%, transparent 45%);
       mask: radial-gradient(
         circle at 50% 50%,
         transparent 0%,
@@ -68,7 +81,7 @@ const AnimationStyles = () => (
 
     @keyframes opacity-animation {
       0%, 100% { opacity: 0; }
-      15% { opacity: 1; }
+      15% { opacity: var(--loader-scan-opacity); }
       65% { opacity: 0; }
     }
 
@@ -77,31 +90,29 @@ const AnimationStyles = () => (
       opacity: 0;
       animation: loader-letter-anim 2s infinite linear;
       z-index: 2;
-      white-space: pre; /* Preserves spaces in message */
+      white-space: pre;
     }
 
     @keyframes loader-letter-anim {
       0% { opacity: 0; }
       5% {
         opacity: 1;
-        text-shadow: 0 0 4px #fff;
+        text-shadow: 0 0 8px var(--loader-glow);
         transform: scale(1.1) translateY(-2px);
       }
-      20% { opacity: 0.2; }
+      20% { opacity: 0.3; }
       100% { opacity: 0; }
     }
   `}</style>
 );
 
 const Loading = memo(({ message = 'TRACKWICKET', size = 'default' }) => {
-  // Scaling map since the CSS used 'scale: 2'
   const scaleClasses = {
     small: 'scale-75',
     default: 'scale-110',
     large: 'scale-150',
   };
 
-  // Turn string into array of characters to apply staggered delays
   const letters = message.split('');
 
   return (

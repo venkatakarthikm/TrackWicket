@@ -1115,7 +1115,7 @@ const LiveDetails = ({ theme, toggleTheme }) => {
                   </div>
                 )}
                 {displayScore2 && (
-                  <div className="text-right p-3 border-l-2 border-primary flex-1 bg-primary/10 rounded-xl">
+                  <div className="text-right p-3 flex-1 bg-primary/10 rounded-xl">
                     <p className="text-xs font-semibold text-primary mb-1">
                       {displayScore2.batTeamName}
                     </p>

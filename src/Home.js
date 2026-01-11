@@ -186,14 +186,59 @@ const Home = ({ type = 'live' }) => {
     };
   }, [type]);
 
+  const PRIORITY_SERIES = [
+    "Indian Premier League 2026",
+    "Womens Premier League 2026",
+    "India",
+    "The Ashes",
+    "Under-19",
+    "Vijay Hazare",
+    "ICC",
+    "Big Bash League",
+    "SA20",
+] ;
+
   const groupMatchesBySeries = (matches) => {
-    const grouped = {};
-    matches.forEach((match) => {
-      if (!grouped[match.seriesName]) { grouped[match.seriesName] = []; }
-      grouped[match.seriesName].push(match);
+  const grouped = {};
+  matches.forEach((match) => {
+    if (!grouped[match.seriesName]) {
+      grouped[match.seriesName] = [];
+    }
+    grouped[match.seriesName].push(match);
+  });
+
+  const seriesNames = Object.keys(grouped);
+
+  // Apply custom sorting only for 'recent' matches
+  if (type === 'recent') {
+    seriesNames.sort((a, b) => {
+      // Helper to find the priority rank of a series name
+      const getPriorityRank = (name) => {
+        const lowerName = name.toLowerCase();
+        // Find the index of the first priority keyword that matches
+        const index = PRIORITY_SERIES.findIndex(priority => 
+          lowerName.includes(priority.toLowerCase())
+        );
+        // If not found, return a high number so it goes to the bottom
+        return index === -1 ? Infinity : index;
+      };
+
+      const rankA = getPriorityRank(a);
+      const rankB = getPriorityRank(b);
+
+      if (rankA < rankB) return -1;
+      if (rankA > rankB) return 1;
+      return 0; 
     });
-    return grouped;
-  };
+  }
+
+  const sortedGrouped = {};
+  seriesNames.forEach((key) => {
+    sortedGrouped[key] = grouped[key];
+  });
+
+  return sortedGrouped;
+};
 
   const filterMatches = (matches) => {
     if (!searchQuery.trim()) return matches;

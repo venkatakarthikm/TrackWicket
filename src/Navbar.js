@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { 
   Search, Activity, Clock, Bell, BarChart3, ListOrdered, 
-  ChevronDown, Menu, X, ArrowLeft, User, Users
+  ChevronDown, Menu, X, ArrowLeft, User, Users,
+  Gem,
+  RadioTower
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
@@ -367,7 +369,7 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
               )}
               
               <Link to="/" className="flex items-center gap-2.5 group">
-                <div className={`bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-glow-sm transition-all duration-300 ${isScrolled ? 'w-9 h-9' : 'w-10 h-10'}`}>
+                <div className={` rounded-xl flex items-center justify-center shadow-glow-sm transition-all duration-300 ${isScrolled ? 'w-9 h-9' : 'w-10 h-10'}`}>
                     <img 
                                 src="/twmini.png" 
                                 alt="Track Wicket Logo" 
@@ -382,15 +384,18 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
 
             {/* Center: Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1">
-              <NavLinkItem to="/live" icon={Activity} isActive={isActive('/live') || isActive('/')} isScrolled={isScrolled}>
+              <NavLinkItem to="/live" icon={RadioTower} isActive={isActive('/live') || isActive('/')} isScrolled={isScrolled}>
                 Live
               </NavLinkItem>
               <NavLinkItem to="/recent" icon={Clock} isActive={isActive('/recent')} isScrolled={isScrolled}>
                 Recent
               </NavLinkItem>
+              <NavLinkItem to="/rankings" icon={ListOrdered} isActive={isActive('/rankings')} isScrolled={isScrolled}>
+                Rankings
+              </NavLinkItem>
               <DropdownMenu 
                 title="Records" 
-                icon={ListOrdered}
+                icon={Gem}
                 items={recordsItems} 
                 isOpen={recordsOpen} 
                 setIsOpen={setRecordsOpen}
@@ -477,6 +482,9 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
               </MobileLink>
               <MobileLink to="/recent" icon={Clock} isActive={isActive('/recent')} onClick={closeMenu}>
                 Recent Matches
+              </MobileLink>
+              <MobileLink to="/rankings" icon={Clock} isActive={isActive('/rankings')} onClick={closeMenu}>
+                Rankings
               </MobileLink>
               <MobileLink to="/players" icon={User} isActive={isActive('/players')} onClick={closeMenu}>
                 Players
