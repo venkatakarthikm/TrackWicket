@@ -31,29 +31,39 @@ const getInitialTheme = () => {
 
 function App() {
   const [theme, setTheme] = useState(getInitialTheme);
+  const [oneSignalReady, setOneSignalReady] = useState(false);
 
   useEffect(() => {
-    const initOneSignal = async () => {
-      try {
-        // CRITICAL CHECK: Prevent double initialization error
-        if (window.OneSignal && !window.OneSignal.initialized) {
-          await window.OneSignal.init({
-            appId: "6781142f-1aa4-4745-b9d1-908618d9d1f6",
-            allowLocalhostAsSecureOrigin: true,
-            notifyButton: { enabled: false }, // We use our own custom UI
-          });
-          console.log("✅ OneSignal Initialized");
-        }
-      } catch (e) {
-        console.error("OneSignal Global Init Error:", e);
+  const initOneSignal = async () => {
+    try {
+      if (!window.OneSignal) {
+        setTimeout(initOneSignal, 100);
+        return;
       }
-    };
 
-    // Ensure script is loaded before calling init
-    if (window.OneSignal) {
-      initOneSignal();
+      if (window.__oneSignalInit) {
+        setOneSignalReady(true);
+        return;
+      }
+
+      await window.OneSignal.init({
+        appId: "6781142f-1aa4-4745-b9d1-908618d9d1f6",
+        allowLocalhostAsSecureOrigin: true,
+        notifyButton: { enable: false },
+      });
+
+      window.__oneSignalInit = true;
+      setOneSignalReady(true);
+      console.log("✅ OneSignal Ready");
+    } catch (e) {
+      console.error("❌ OneSignal Init Error:", e.message);
+      setOneSignalReady(false);
     }
-  }, []);
+  };
+
+  initOneSignal();
+}, []);
+
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -67,7 +77,7 @@ function App() {
     setTheme((prevTheme) => (prevTheme === "dark" ? "light" : "dark"));
   }, []);
 
-  const themeProps = { theme, toggleTheme };
+  const themeProps = { theme, toggleTheme, oneSignalReady };
 
   return (
     <HelmetProvider>
@@ -76,62 +86,62 @@ function App() {
           <Routes>
             <Route path="/" element={<Navigate to="/live" replace />} />
             <Route path="/live" element={<Home type="live" {...themeProps} />} />
-          <Route
-            path="/recent"
-            element={<Home type="recent" {...themeProps} />}
-          />
-          <Route path="/players" element={<Players {...themeProps} />} />
-          <Route
-            path="/player/:playerSlug/:playerId"
-            element={<PlayerDetails {...themeProps} />}
-          />
-          <Route
-            path="/rankings/:gender/:role/:format"
-            element={<Rankings {...themeProps} />}
-          />
-          <Route
-            path="/rankings"
-            element={<Navigate to="/rankings/men/batsmen/odi" replace />}
-          />
+            <Route
+              path="/recent"
+              element={<Home type="recent" {...themeProps} />}
+            />
+            <Route path="/players" element={<Players {...themeProps} />} />
+            <Route
+              path="/player/:playerSlug/:playerId"
+              element={<PlayerDetails {...themeProps} />}
+            />
+            <Route
+              path="/rankings/:gender/:role/:format"
+              element={<Rankings {...themeProps} />}
+            />
+            <Route
+              path="/rankings"
+              element={<Navigate to="/rankings/men/batsmen/odi" replace />}
+            />
 
-          <Route
-            path="/notifications"
-            element={<Notification {...themeProps} />}
-          />
-          <Route path="/privacy" element={<Privacy {...themeProps} />} />
-          <Route path="/terms" element={<Terms {...themeProps} />} />
-          <Route
-            path="/match/:matchId/:teamsSlug/:seriesSlug/live"
-            element={<LiveDetails {...themeProps} />}
-          />
-          <Route
-            path="/match/:matchId/:teamsSlug/:seriesSlug/scorecard"
-            element={<ScorecardPage {...themeProps} />}
-          />
-          <Route
-            path="/stats/:statSlug"
-            element={
-              <Navigate
-                to={(location) =>
-                  `/stats/${location.pathname.split("/")[2]}/odi`
-                }
-                replace
-              />
-            }
-          />
-          <Route
-            path="/stats/:statSlug/:formatSlug"
-            element={<StatsPage {...themeProps} />}
-          />
-          <Route
-            path="/stats/:statSlug/:formatSlug/:year"
-            element={<StatsPage {...themeProps} />}
-          />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Footer />
-      </div>
-    </Router>
+            <Route
+              path="/notifications"
+              element={<Notification {...themeProps} />}
+            />
+            <Route path="/privacy" element={<Privacy {...themeProps} />} />
+            <Route path="/terms" element={<Terms {...themeProps} />} />
+            <Route
+              path="/match/:matchId/:teamsSlug/:seriesSlug/live"
+              element={<LiveDetails {...themeProps} />}
+            />
+            <Route
+              path="/match/:matchId/:teamsSlug/:seriesSlug/scorecard"
+              element={<ScorecardPage {...themeProps} />}
+            />
+            <Route
+              path="/stats/:statSlug"
+              element={
+                <Navigate
+                  to={(location) =>
+                    `/stats/${location.pathname.split("/")[2]}/odi`
+                  }
+                  replace
+                />
+              }
+            />
+            <Route
+              path="/stats/:statSlug/:formatSlug"
+              element={<StatsPage {...themeProps} />}
+            />
+            <Route
+              path="/stats/:statSlug/:formatSlug/:year"
+              element={<StatsPage {...themeProps} />}
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
     </HelmetProvider>
   );
 }

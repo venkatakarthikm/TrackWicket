@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
-import OneSignal from "react-onesignal";
 import {
   Check,
   Plus,
@@ -13,7 +12,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-const API_BASE_URL = "6781142f-1aa4-4745-b9d1-908618d9d1f6";
+// FIX: Use environment variable or fallback to correct localhost URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api";
 
 class NotificationComponent extends Component {
   constructor(props) {
@@ -66,7 +66,7 @@ class NotificationComponent extends Component {
 
   setupOneSignalState = async () => {
     try {
-      const isPushSupported = await OneSignal.isPushNotificationsSupported();
+      const isPushSupported = await window.OneSignal.Notifications.isPushSupported();
 
       if (!isPushSupported) {
         console.warn("⚠️ Push notifications not supported on this browser");
@@ -74,8 +74,17 @@ class NotificationComponent extends Component {
         return;
       }
 
-      const playerId = await OneSignal.getUserId();
-      const permission = await OneSignal.getNotificationPermission();
+      const permission = await window.OneSignal.Notifications.permission;
+      let playerId = null;
+
+      // Get player ID if permission is granted
+      if (permission) {
+        try {
+          playerId = await window.OneSignal.User.PushSubscription.id;
+        } catch (e) {
+          console.warn("⚠️ Could not get player ID:", e);
+        }
+      }
 
       console.log(
         "🔔 OneSignal State - Player ID:",
@@ -86,22 +95,26 @@ class NotificationComponent extends Component {
 
       this.setState({
         oneSignalPlayerId: playerId,
-        permissionStatus: permission,
+        permissionStatus: permission ? "granted" : "default",
       });
 
       // Listen for subscription changes
-      OneSignal.on("subscriptionChange", async (isSubscribed) => {
-        console.log("📡 Subscription changed:", isSubscribed);
-        const id = await OneSignal.getUserId();
-        this.setState({ oneSignalPlayerId: id });
+      window.OneSignal.User.PushSubscription.addEventListener("change", async (event) => {
+        console.log("📡 Subscription changed:", event);
+        
+        const newPlayerId = event.current.id;
+        this.setState({ 
+          oneSignalPlayerId: newPlayerId,
+          permissionStatus: newPlayerId ? "granted" : "default" 
+        });
 
-        if (this.state.isLoggedIn && id) {
-          await this.savePreferences(this.state.selectedTeams, id);
+        if (this.state.isLoggedIn && newPlayerId) {
+          await this.savePreferences(this.state.selectedTeams, newPlayerId);
         }
       });
 
       // If already granted and logged in, save the player ID
-      if (permission === "granted" && playerId && this.state.isLoggedIn) {
+      if (permission && playerId && this.state.isLoggedIn) {
         await this.savePreferences(this.state.selectedTeams, playerId);
       }
     } catch (error) {
@@ -110,47 +123,24 @@ class NotificationComponent extends Component {
   };
 
   handleRequestPermission = async () => {
-    this.setState({ isRequestingPermission: true });
+  try {
+    const result = await window.OneSignal.Notifications.requestPermission();
+    const permission = await window.OneSignal.Notifications.permission;
 
-    try {
-      console.log("🔔 Requesting notification permission...");
-
-      // Request permission using OneSignal NPM package
-      const permission = await OneSignal.Notifications.requestPermission()
-
-      console.log("✅ Permission result:", permission);
-
-      // Wait a moment and get the updated state
-      setTimeout(async () => {
-        const id = await OneSignal.getUserId();
-        const perm = await OneSignal.getNotificationPermission();
-
-        this.setState({
-          oneSignalPlayerId: id,
-          permissionStatus: perm,
-          isRequestingPermission: false,
-        });
-
-        if (perm === "granted") {
-          this.showMessage("Notifications enabled successfully!", "success");
-
-          // Save to backend if logged in
-          if (this.state.isLoggedIn && id) {
-            await this.savePreferences(this.state.selectedTeams, id);
-          }
-        } else if (perm === "denied") {
-          this.showMessage(
-            "Notification permission denied. Please enable it in browser settings.",
-            "error"
-          );
-        }
-      }, 1000);
-    } catch (error) {
-      console.error("❌ Permission request failed:", error);
-      this.setState({ isRequestingPermission: false });
-      this.showMessage("Failed to request notification permission.", "error");
+    let playerId = null;
+    if (permission) {
+      playerId = await window.OneSignal.User.PushSubscription.id;
     }
-  };
+
+    this.setState({
+      permissionStatus: permission ? "granted" : "denied",
+      oneSignalPlayerId: playerId,
+    });
+  } catch (e) {
+    console.error("Permission error:", e);
+  }
+};
+
 
   showMessage = (text, type = "success") => {
     this.setState({ message: text, messageType: type });
@@ -250,9 +240,13 @@ class NotificationComponent extends Component {
           this.props.oneSignalReady &&
           this.state.permissionStatus === "granted"
         ) {
-          const playerId = await OneSignal.getUserId();
-          if (playerId) {
-            await this.savePreferences(this.state.selectedTeams, playerId);
+          try {
+            const playerId = await window.OneSignal.User.PushSubscription.id;
+            if (playerId) {
+              await this.savePreferences(this.state.selectedTeams, playerId);
+            }
+          } catch (e) {
+            console.warn("⚠️ Could not sync player ID after login:", e);
           }
         }
       }

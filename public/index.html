@@ -70,12 +70,13 @@
     }
     </script>
 
+    <!-- Load OneSignal SDK BEFORE React -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   </head>
   <body>
     <noscript>TrackWicket live cricket scores, ball-by-ball commentary, player rankings, and detailed match statistics. Follow IPL, ICC World Cup, and International matches in real-time.</noscript>
     <div id="root"></div>
 
-    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script> 
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </body>
 </html>
