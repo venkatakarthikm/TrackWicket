@@ -161,6 +161,9 @@ const ServerMonitor = ({ children }) => {
               Track <span className="text-blue-600 underline">Wicket</span>
             </h1>
             <p className="text-neutral-400 text-xs md:text-sm leading-relaxed uppercase tracking-widest">
+              Server Maintenance in Progress...
+            </p>
+            <p className="text-neutral-400 text-xs md:text-sm leading-relaxed uppercase tracking-widest">
               Deployment of Enhanced Series Analytics in progress...
             </p>
           </div>
