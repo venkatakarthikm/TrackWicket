@@ -43,6 +43,12 @@ const Footer = () => {
               >
                 Recent Results
               </a>
+              <a
+                href="/upcoming"
+                className="text-muted-foreground hover:text-primary transition-colors duration-200"
+              >
+                Upcoming Matches
+              </a>
             </nav>
           </div>
 

@@ -72,11 +72,18 @@
 
     <!-- Load OneSignal SDK BEFORE React -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SQGDJM538K"></script>
+    <link rel="preconnect" href="https://challenges.cloudflare.com">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-SQGDJM538K');
+  </script>
   </head>
   <body>
     <noscript>TrackWicket live cricket scores, ball-by-ball commentary, player rankings, and detailed match statistics. Follow IPL, ICC World Cup, and International matches in real-time.</noscript>
     <div id="root"></div>
-
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </body>
 </html>

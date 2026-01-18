@@ -304,6 +304,26 @@ const BatsmanRow = memo(({ batsman, isStriker }) => (
   </div>
 ));
 
+const calculateCumulativeOver = (recentStats) => {
+  if (!recentStats) return [];
+  
+  // Clean the string and split by spaces to get individual balls
+  const balls = recentStats.split("|").pop().trim().split(/\s+/).filter(b => b.length > 0);
+  
+  let total = 0;
+  return balls.map(ball => {
+    const b = ball.toUpperCase();
+    if (b.includes("W") && !b.includes("WD") && !b.includes("NB")) {
+      // Wicket with no runs
+    } else {
+      const runs = parseInt(b.replace(/\D/g, "")) || 0;
+      total += runs;
+      if (b.includes("WD") || b.includes("NB")) total += 1; // Standard extra penalty
+    }
+    return total;
+  });
+};
+
 BatsmanRow.displayName = "BatsmanRow";
 
 // Optimized Live View Component with proper memoization
@@ -311,11 +331,30 @@ const LiveView = memo(
   ({ miniscore, currentInnings }) => {
     const currentOverDisplay = currentInnings?.overs || "-";
 
-    // Memoize balls to prevent unnecessary re-renders
-    const recentBalls = useMemo(() => {
-      if (!miniscore?.recentOvsStats) return null;
-      return renderBallByBall(miniscore.recentOvsStats);
-    }, [miniscore?.recentOvsStats]);
+    /// Calculate cumulative totals for the current live over
+  const cumulativeTotals = useMemo(() => 
+    calculateCumulativeOver(miniscore?.recentOvsStats), 
+  [miniscore?.recentOvsStats]);
+
+  const overStats = useMemo(() => {
+    if (!miniscore?.recentOvsStats) return { balls: [], total: 0 };
+    
+    // Extract balls from the recent stats string
+    const balls = miniscore.recentOvsStats.split("|").pop().trim().split(/\s+/).filter(b => b.length > 0);
+    
+    // Calculate total runs for the current over
+    const total = balls.reduce((acc, ball) => {
+      const b = ball.toUpperCase();
+      let runs = 0;
+      if (!(b.includes("W") && !b.includes("WD") && !b.includes("NB"))) {
+        runs = parseInt(b.replace(/\D/g, "")) || 0;
+        if (b.includes("WD") || b.includes("NB")) runs += 1;
+      }
+      return acc + runs;
+    }, 0);
+
+    return { balls, total };
+  }, [miniscore?.recentOvsStats]);
 
     return (
       <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
@@ -330,7 +369,25 @@ const LiveView = memo(
               <span className="text-2xl font-extrabold text-foreground whitespace-nowrap">
                 {currentOverDisplay}
               </span>
-              {recentBalls}
+              <div className="flex items-center gap-2">
+            {/* Render Ball Circles */}
+            <div className="flex gap-1.5">
+              {overStats.balls.map((ball, index) => (
+                <div
+                  key={index}
+                  className={`h-9 w-9 flex items-center justify-center text-sm rounded-full font-bold shadow-md ${getBallColorClass(ball)}`}
+                >
+                  {ball.replace("Wd", "WD").replace("nb", "NB").replace("R", "RO")}
+                </div>
+              ))}
+            </div>
+
+            {/* Total Divider and Score */}
+            <span className="text-xl font-bold text-muted-foreground mx-1">=</span>
+            <span className="text-2xl font-black text-primary animate-pulse-once">
+              {overStats.total}
+            </span>
+          </div>
             </div>
           )}
         </div>
@@ -508,6 +565,29 @@ const OversSection = memo(
         .substring(0, 100)
         .trim();
 
+    // Logic to calculate the cumulative total after each ball in the over
+    const calculateOverProgress = (balls) => {
+      let runningTotal = 0;
+      return balls.map((ball) => {
+        const ballRun = ball.run.toUpperCase();
+        
+        // standard cricket logic: Wickets = 0 runs, unless it's a wide/no-ball wicket
+        if (ballRun.includes("W") && !ballRun.includes("WD") && !ballRun.includes("NB")) {
+           // No runs added
+        } else {
+          // Extract numeric runs (1, 2, 3, 4, 6)
+          const numericRuns = parseInt(ballRun.replace(/\D/g, "")) || 0;
+          runningTotal += numericRuns;
+
+          // Add +1 penalty run for Extras (Wide or No Ball)
+          if (ballRun.includes("WD") || ballRun.includes("NB")) {
+            runningTotal += 1;
+          }
+        }
+        return runningTotal;
+      });
+    };
+
     return (
       <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
         <h2 className="text-2xl font-bold text-foreground mb-5 flex items-center gap-3">
@@ -515,79 +595,74 @@ const OversSection = memo(
           Innings Over History
         </h2>
 
-        <div className="space-y-4">
-          {displayedOvers.map((overData) => (
-            <div
-              key={overData.over}
-              className="bg-gradient-to-r from-secondary/30 to-secondary/10 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50"
-            >
-              <div className="flex items-center gap-4 flex-shrink-0">
-                <div className="min-w-[80px] bg-primary/10 p-3 rounded-lg border border-primary/30">
-                  <span className="text-xl font-extrabold text-primary block">
-                    Ov {overData.over}
-                  </span>
-                  <span className="text-sm font-semibold text-muted-foreground">
-                    {overData.runs} runs
-                  </span>
-                </div>
-                <span className="text-base font-bold text-foreground whitespace-nowrap">
-                  {currentInnings?.batTeamName} {overData.score}-
-                  {overData.wickets}
-                </span>
-              </div>
+        <div className="space-y-6">
+          {displayedOvers.map((overData) => {
+            // Get the running total array for this specific over
+            const overProgress = calculateOverProgress(overData.balls);
 
-              <div className="flex flex-col flex-1 min-w-0">
-                <div className="text-sm text-muted-foreground mb-1">
-                  Bowler:{" "}
-                  <span className="text-foreground font-semibold">
-                    {overData.bowler}
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Batsmen:{" "}
-                  <span className="text-foreground font-semibold">
-                    {overData.batsmanStriker} &{" "}
-                    {overData.batsmanNonStriker || "N/A"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                {overData.balls.map((ball, index) => (
-                  <div
-                    key={index}
-                    className={`h-8 w-8 flex items-center justify-center text-xs rounded-full cursor-pointer hover:scale-110 transition-transform ${getBallColorClass(
-                      ball.run
-                    )}`}
-                    title={`Striker: ${ball.striker}, Bowler: ${
-                      ball.bowler
-                    }, ${cleanCommText(ball.commText)}`}
-                  >
-                    {ball.run
-                      .replace("Wd", "WD")
-                      .replace("nb", "NB")
-                      .replace("R", "RO")
-                      .replace("L1", "LB")}
+            return (
+              <div
+                key={overData.over}
+                className="bg-gradient-to-r from-secondary/30 to-secondary/10 p-4 rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-border/50"
+              >
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  <div className="min-w-[70px] bg-primary/10 p-2 rounded-lg border border-primary/30 text-center">
+                    <span className="text-lg font-black text-primary block">
+                      Ov {overData.over}
+                    </span>
                   </div>
-                ))}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-foreground">
+                      {currentInnings?.batTeamName} {overData.score}-{overData.wickets}
+                    </span>
+                    <span className="text-xs text-muted-foreground italic">
+                      {overData.runs} runs in over
+                    </span>
+                  </div>
+                </div>
+
+                {/* Ball by Ball with Progress Stats */}
+                <div className="flex flex-wrap gap-4 items-center">
+                  {overData.balls.map((ball, index) => (
+                    <div key={index} className="flex items-center gap-2 bg-background/40 p-1 pr-3 rounded-full border border-border/50">
+                      {/* Ball Circle */}
+                      <div
+                        className={`h-9 w-9 flex items-center justify-center text-xs rounded-full shadow-lg transition-transform hover:scale-110 ${getBallColorClass(ball.run)}`}
+                        title={`${ball.striker}: ${cleanCommText(ball.commText)}`}
+                      >
+                        {ball.run
+                          .replace("Wd", "WD")
+                          .replace("nb", "NB")
+                          .replace("R", "RO")
+                          .replace("L1", "LB")}
+                      </div>
+                      
+                      {/* Current Over Total Progress */}
+                      <span className="text-sm font-black text-foreground">
+                        {overProgress[index]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden xl:flex flex-col text-right text-[10px] text-muted-foreground uppercase tracking-wider">
+                  <span>Bowler: <b className="text-foreground">{overData.bowler}</b></span>
+                  <span>Striker: <b className="text-foreground">{overData.batsmanStriker}</b></span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {hasMore && (
           <button
             onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
-            className="w-full mt-5 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-primary/20 to-accent/20 text-foreground rounded-xl text-sm font-bold hover:from-primary/30 hover:to-accent/30 transition-all duration-300 border border-primary/30"
+            className="w-full mt-6 flex items-center justify-center gap-2 px-4 py-3 bg-secondary/50 text-foreground rounded-xl text-sm font-bold hover:bg-secondary transition-all border border-border shadow-sm"
           >
             {isHistoryExpanded ? (
-              <>
-                <ChevronUp size={18} /> Show Less
-              </>
+              <><ChevronUp size={18} /> Show Less</>
             ) : (
-              <>
-                <ChevronDown size={18} /> View All {overHistory.length} Overs
-              </>
+              <><ChevronDown size={18} /> View All {overHistory.length} Overs</>
             )}
           </button>
         )}
@@ -597,8 +672,7 @@ const OversSection = memo(
   (prevProps, nextProps) => {
     return (
       prevProps.isHistoryExpanded === nextProps.isHistoryExpanded &&
-      JSON.stringify(prevProps.overHistory) ===
-        JSON.stringify(nextProps.overHistory)
+      JSON.stringify(prevProps.overHistory) === JSON.stringify(nextProps.overHistory)
     );
   }
 );

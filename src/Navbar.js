@@ -477,13 +477,16 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
 
             {/* Nav Links */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              <MobileLink to="/live" icon={Activity} isActive={isActive('/live') || isActive('/')} onClick={closeMenu}>
+              <MobileLink to="/live" icon={RadioTower} isActive={isActive('/live') || isActive('/')} onClick={closeMenu}>
                 Live Matches
               </MobileLink>
               <MobileLink to="/recent" icon={Clock} isActive={isActive('/recent')} onClick={closeMenu}>
                 Recent Matches
               </MobileLink>
-              <MobileLink to="/rankings" icon={Clock} isActive={isActive('/rankings')} onClick={closeMenu}>
+              <MobileLink to="/upcoming" icon={Clock} isActive={isActive('/upcoming')} onClick={closeMenu}>
+                Upcoming Matches
+              </MobileLink>
+              <MobileLink to="/rankings" icon={ListOrdered} isActive={isActive('/rankings')} onClick={closeMenu}>
                 Rankings
               </MobileLink>
               <MobileLink to="/players" icon={User} isActive={isActive('/players')} onClick={closeMenu}>
