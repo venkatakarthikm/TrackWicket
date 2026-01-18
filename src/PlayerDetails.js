@@ -391,14 +391,6 @@ const PlayerDetails = () => {
 
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
-          {/* Back Button */}
-          <button
-            onClick={handleBack}
-            className="btn-ghost flex items-center gap-2 mb-6 animate-fade-in"
-          >
-            <ChevronLeft size={20} />
-            Back to Search
-          </button>
 
           {/* Player Header Card */}
           <div className="glass-card rounded-2xl p-6 md:p-8 mb-8 animate-fade-in-up">

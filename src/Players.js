@@ -271,15 +271,6 @@ const Players = () => {
           )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-6 mt-auto">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Track Wicket
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

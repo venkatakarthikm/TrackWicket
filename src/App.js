@@ -18,15 +18,66 @@ import Terms from "./Terms";
 import NotFound from "./NotFound.js";
 import Rankings from "./Rankings.js";
 import { HelmetProvider } from 'react-helmet-async';
+import SeriesView from "./SeriesView.js";
+import ServerMonitor from './ServerMonitor';
 
 const getInitialTheme = () => {
   if (typeof window !== "undefined" && window.localStorage) {
     const storedPref = window.localStorage.getItem("theme");
     if (typeof storedPref === "string") return storedPref;
-    const userMedia = window.matchMedia("(prefers-color-scheme: dark)");
-    if (userMedia.matches) return "dark";
+    const userMedia = window.matchMedia("(prefers-color-scheme: light)");
+    if (userMedia.matches) return "light";
   }
-  return "dark";
+  return "light";
+};
+
+const OfflineStatus = () => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showBackOnline, setShowBackOnline] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setShowBackOnline(true);
+      // Hide the "Back Online" message after 3 seconds
+      setTimeout(() => setShowBackOnline(false), 3000);
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setShowBackOnline(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Loss of connection UI
+  if (!isOnline) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-[9999] bg-red-600 text-white py-2 px-4 text-center text-sm font-bold shadow-md animate-bounce-subtle">
+        <div className="flex items-center justify-center gap-2">
+          <span className="h-2 w-2 bg-white rounded-full animate-pulse" />
+          No Internet Connection. Checking your network...
+        </div>
+      </div>
+    );
+  }
+
+  // Recovery UI
+  if (showBackOnline) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-[9999] bg-green-600 text-white py-2 px-4 text-center text-sm font-bold shadow-md">
+        ✓ Back Online
+      </div>
+    );
+  }
+
+  return null;
 };
 
 function App() {
@@ -34,36 +85,29 @@ function App() {
   const [oneSignalReady, setOneSignalReady] = useState(false);
 
   useEffect(() => {
-  const initOneSignal = async () => {
-    try {
-      if (!window.OneSignal) {
-        setTimeout(initOneSignal, 100);
-        return;
-      }
-
-      if (window.__oneSignalInit) {
+    const initOneSignal = async () => {
+      try {
+        if (!window.OneSignal) {
+          setTimeout(initOneSignal, 100);
+          return;
+        }
+        if (window.__oneSignalInit) {
+          setOneSignalReady(true);
+          return;
+        }
+        await window.OneSignal.init({
+          appId: "6781142f-1aa4-4745-b9d1-908618d9d1f6",
+          allowLocalhostAsSecureOrigin: true,
+          notifyButton: { enable: false },
+        });
+        window.__oneSignalInit = true;
         setOneSignalReady(true);
-        return;
+      } catch (e) {
+        setOneSignalReady(false);
       }
-
-      await window.OneSignal.init({
-        appId: "6781142f-1aa4-4745-b9d1-908618d9d1f6",
-        allowLocalhostAsSecureOrigin: true,
-        notifyButton: { enable: false },
-      });
-
-      window.__oneSignalInit = true;
-      setOneSignalReady(true);
-      console.log("✅ OneSignal Ready");
-    } catch (e) {
-      console.error("❌ OneSignal Init Error:", e.message);
-      setOneSignalReady(false);
-    }
-  };
-
-  initOneSignal();
-}, []);
-
+    };
+    initOneSignal();
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -83,60 +127,27 @@ function App() {
     <HelmetProvider>
       <Router>
         <div className="App min-h-screen flex flex-col">
+          <OfflineStatus />
+          <ServerMonitor/>  
           <Routes>
             <Route path="/" element={<Navigate to="/live" replace />} />
             <Route path="/live" element={<Home type="live" {...themeProps} />} />
-            <Route
-              path="/recent"
-              element={<Home type="recent" {...themeProps} />}
-            />
+            <Route path="/recent" element={<Home type="recent" {...themeProps} />} />
+            <Route path="/upcoming" element={<Home type="upcoming" {...themeProps} />} />
+            <Route path="/series/:seriesId" element={<SeriesView {...themeProps} />} />
+            <Route path="/series/:seriesId/:seriesSlug" element={<SeriesView {...themeProps} />} />
             <Route path="/players" element={<Players {...themeProps} />} />
-            <Route
-              path="/player/:playerSlug/:playerId"
-              element={<PlayerDetails {...themeProps} />}
-            />
-            <Route
-              path="/rankings/:gender/:role/:format"
-              element={<Rankings {...themeProps} />}
-            />
-            <Route
-              path="/rankings"
-              element={<Navigate to="/rankings/men/batsmen/odi" replace />}
-            />
-
-            <Route
-              path="/notifications"
-              element={<Notification {...themeProps} />}
-            />
+            <Route path="/player/:playerSlug/:playerId" element={<PlayerDetails {...themeProps} />} />
+            <Route path="/rankings/:gender/:role/:format" element={<Rankings {...themeProps} />} />
+            <Route path="/rankings" element={<Navigate to="/rankings/men/batsmen/odi" replace />} />
+            <Route path="/notifications" element={<Notification {...themeProps} />} />
             <Route path="/privacy" element={<Privacy {...themeProps} />} />
             <Route path="/terms" element={<Terms {...themeProps} />} />
-            <Route
-              path="/match/:matchId/:teamsSlug/:seriesSlug/live"
-              element={<LiveDetails {...themeProps} />}
-            />
-            <Route
-              path="/match/:matchId/:teamsSlug/:seriesSlug/scorecard"
-              element={<ScorecardPage {...themeProps} />}
-            />
-            <Route
-              path="/stats/:statSlug"
-              element={
-                <Navigate
-                  to={(location) =>
-                    `/stats/${location.pathname.split("/")[2]}/odi`
-                  }
-                  replace
-                />
-              }
-            />
-            <Route
-              path="/stats/:statSlug/:formatSlug"
-              element={<StatsPage {...themeProps} />}
-            />
-            <Route
-              path="/stats/:statSlug/:formatSlug/:year"
-              element={<StatsPage {...themeProps} />}
-            />
+            <Route path="/match/:matchId/:teamsSlug/:seriesSlug/live" element={<LiveDetails {...themeProps} />} />
+            <Route path="/match/:matchId/:teamsSlug/:seriesSlug/scorecard" element={<ScorecardPage {...themeProps} />} />
+            <Route path="/stats/:statSlug" element={<Navigate to={(location) => `/stats/${location.pathname.split("/")[2]}/odi`} replace />} />
+            <Route path="/stats/:statSlug/:formatSlug" element={<StatsPage {...themeProps} />} />
+            <Route path="/stats/:statSlug/:formatSlug/:year" element={<StatsPage {...themeProps} />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />

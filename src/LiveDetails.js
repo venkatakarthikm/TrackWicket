@@ -22,13 +22,13 @@ import {
   Pin,
   PinOff,
   Bell, // NEW: Bell Icon
-  X,    // NEW: Close Icon
-  Check // NEW: Success Icon
+  X, // NEW: Close Icon
+  Check, // NEW: Success Icon
 } from "lucide-react";
 import Navbar from "./Navbar";
-import axios from 'axios'; // NEW: Required for API call
+import axios from "axios"; // NEW: Required for API call
 import Loader from "./Loader";
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider } from "react-helmet-async";
 
 const getFormatBadgeColor = (format) => {
   switch (format?.toUpperCase()) {
@@ -41,6 +41,13 @@ const getFormatBadgeColor = (format) => {
     default:
       return "bg-gradient-to-r from-gray-600 to-gray-700 text-white";
   }
+};
+
+const slugify = (text) => {
+  return text
+    .toLowerCase()
+    .replace(/[^\w ]+/g, "") // Remove special characters like apostrophes
+    .replace(/ +/g, "-"); // Replace spaces with dashes
 };
 
 // Smooth animated score component with transition
@@ -164,83 +171,110 @@ const formatTossResult = (tossResults) => {
 };
 
 const processCommentaryToOvers = (commentaryList, miniscore) => {
-    if (!commentaryList || commentaryList.length === 0) return [];
-    
-    const overs = [];
-    let currentOver = null;
-    let ballsInOver = [];
+  if (!commentaryList || commentaryList.length === 0) return [];
 
-    for (const comm of commentaryList) {
-        const overNum = comm.overNumber ? Math.floor(comm.overNumber) : null;
-        
-        if (!overNum && comm.event === 'NONE' && !comm.ballNbr) continue;
-        if (!comm.batTeamScore && !comm.overSeparator) continue;
+  const overs = [];
+  let currentOver = null;
+  let ballsInOver = [];
 
-        if (comm.event === 'over-break' || (overNum && currentOver !== overNum)) {
-            if (currentOver !== null && ballsInOver.length > 0) {
-                overs.push({
-                    over: currentOver,
-                    summary: comm.overSeparator ? comm.overSeparator.o_summary : ballsInOver.map(b => b.run).reverse().join(' '),
-                    balls: [...ballsInOver].reverse(), 
-                    bowler: ballsInOver[0]?.bowler || comm.bowlerDetails?.playerName || 'N/A',
-                    batsmanStriker: ballsInOver[0]?.striker || comm.overSeparator?.batStrikerObj?.playerName || 'N/A',
-                    batsmanNonStriker: comm.overSeparator?.batNonStrikerObj?.playerName || 'N/A',
-                    runs: comm.overSeparator?.runs || ballsInOver.reduce((sum, ball) => sum + (parseInt(String(ball.run).match(/\d/)) || 0), 0),
-                    score: comm.overSeparator?.score || 0,
-                    wickets: comm.overSeparator?.wickets || 0,
-                });
-            }
-            
-            currentOver = overNum;
-            ballsInOver = [];
-        }
-        
-        if (comm.ballMetric && comm.overNumber && comm.bowlerDetails && comm.batsmanDetails) {
-            let runValue = comm.legalRuns;
-            if (comm.event && comm.event.includes('wicket')) runValue = 'W';
-            else if (comm.commText.toLowerCase().includes('wide')) runValue = 'Wd';
-            else if (comm.commText.toLowerCase().includes('no ball')) runValue = 'NB';
-            else if (comm.commText.toLowerCase().includes('six')) runValue = '6';
-            else if (comm.commText.toLowerCase().includes('four')) runValue = '4';
-            else if (comm.commText.toLowerCase().includes('leg byes')) runValue = 'LB';
+  for (const comm of commentaryList) {
+    const overNum = comm.overNumber ? Math.floor(comm.overNumber) : null;
 
-            ballsInOver.push({
-                run: String(runValue || '0'),
-                bowler: comm.bowlerDetails.playerName,
-                striker: comm.batsmanDetails.playerName,
-                commText: comm.commText
-            });
-        }
-    }
-    
-    if (ballsInOver.length > 0 && currentOver !== null) {
-        if (overs.length === 0 || overs[0].over !== currentOver) {
-             overs.unshift({
-                over: currentOver,
-                summary: ballsInOver.map(b => b.run).reverse().join(' '),
-                balls: [...ballsInOver].reverse(),
-                bowler: ballsInOver[0]?.bowler || 'N/A',
-                batsmanStriker: ballsInOver[0]?.striker || 'N/A',
-                batsmanNonStriker: 'N/A',
-                runs: ballsInOver.reduce((sum, ball) => sum + (parseInt(String(ball.run).match(/\d/)) || 0), 0),
-                score: miniscore?.batTeam?.teamScore || 0,
-                wickets: miniscore?.batTeam?.teamWkts || 0,
-            });
-        }
+    if (!overNum && comm.event === "NONE" && !comm.ballNbr) continue;
+    if (!comm.batTeamScore && !comm.overSeparator) continue;
+
+    if (comm.event === "over-break" || (overNum && currentOver !== overNum)) {
+      if (currentOver !== null && ballsInOver.length > 0) {
+        overs.push({
+          over: currentOver,
+          summary: comm.overSeparator
+            ? comm.overSeparator.o_summary
+            : ballsInOver
+                .map((b) => b.run)
+                .reverse()
+                .join(" "),
+          balls: [...ballsInOver].reverse(),
+          bowler:
+            ballsInOver[0]?.bowler || comm.bowlerDetails?.playerName || "N/A",
+          batsmanStriker:
+            ballsInOver[0]?.striker ||
+            comm.overSeparator?.batStrikerObj?.playerName ||
+            "N/A",
+          batsmanNonStriker:
+            comm.overSeparator?.batNonStrikerObj?.playerName || "N/A",
+          runs:
+            comm.overSeparator?.runs ||
+            ballsInOver.reduce(
+              (sum, ball) =>
+                sum + (parseInt(String(ball.run).match(/\d/)) || 0),
+              0
+            ),
+          score: comm.overSeparator?.score || 0,
+          wickets: comm.overSeparator?.wickets || 0,
+        });
+      }
+
+      currentOver = overNum;
+      ballsInOver = [];
     }
 
-    const uniqueOvers = [];
-    const seenOvers = new Set();
-    for (const over of overs) {
-        if (!seenOvers.has(over.over)) {
-            uniqueOvers.push(over);
-            seenOvers.add(over.over);
-        }
+    if (
+      comm.ballMetric &&
+      comm.overNumber &&
+      comm.bowlerDetails &&
+      comm.batsmanDetails
+    ) {
+      let runValue = comm.legalRuns;
+      if (comm.event && comm.event.includes("wicket")) runValue = "W";
+      else if (comm.commText.toLowerCase().includes("wide")) runValue = "Wd";
+      else if (comm.commText.toLowerCase().includes("no ball")) runValue = "NB";
+      else if (comm.commText.toLowerCase().includes("six")) runValue = "6";
+      else if (comm.commText.toLowerCase().includes("four")) runValue = "4";
+      else if (comm.commText.toLowerCase().includes("leg byes"))
+        runValue = "LB";
+
+      ballsInOver.push({
+        run: String(runValue || "0"),
+        bowler: comm.bowlerDetails.playerName,
+        striker: comm.batsmanDetails.playerName,
+        commText: comm.commText,
+      });
     }
-    
-    return uniqueOvers.sort((a, b) => b.over - a.over);
+  }
+
+  if (ballsInOver.length > 0 && currentOver !== null) {
+    if (overs.length === 0 || overs[0].over !== currentOver) {
+      overs.unshift({
+        over: currentOver,
+        summary: ballsInOver
+          .map((b) => b.run)
+          .reverse()
+          .join(" "),
+        balls: [...ballsInOver].reverse(),
+        bowler: ballsInOver[0]?.bowler || "N/A",
+        batsmanStriker: ballsInOver[0]?.striker || "N/A",
+        batsmanNonStriker: "N/A",
+        runs: ballsInOver.reduce(
+          (sum, ball) => sum + (parseInt(String(ball.run).match(/\d/)) || 0),
+          0
+        ),
+        score: miniscore?.batTeam?.teamScore || 0,
+        wickets: miniscore?.batTeam?.teamWkts || 0,
+      });
+    }
+  }
+
+  const uniqueOvers = [];
+  const seenOvers = new Set();
+  for (const over of overs) {
+    if (!seenOvers.has(over.over)) {
+      uniqueOvers.push(over);
+      seenOvers.add(over.over);
+    }
+  }
+
+  return uniqueOvers.sort((a, b) => b.over - a.over);
 };
-
 
 // Memoized Batsman Row Component
 const BatsmanRow = memo(({ batsman, isStriker }) => (
@@ -273,150 +307,181 @@ const BatsmanRow = memo(({ batsman, isStriker }) => (
 BatsmanRow.displayName = "BatsmanRow";
 
 // Optimized Live View Component with proper memoization
-const LiveView = memo(({ miniscore, currentInnings }) => {
-    const currentOverDisplay = currentInnings?.overs || '-';
+const LiveView = memo(
+  ({ miniscore, currentInnings }) => {
+    const currentOverDisplay = currentInnings?.overs || "-";
 
     // Memoize balls to prevent unnecessary re-renders
     const recentBalls = useMemo(() => {
-        if (!miniscore?.recentOvsStats) return null;
-        return renderBallByBall(miniscore.recentOvsStats);
+      if (!miniscore?.recentOvsStats) return null;
+      return renderBallByBall(miniscore.recentOvsStats);
     }, [miniscore?.recentOvsStats]);
 
     return (
-        <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-                
-                <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                    <TrendingUp size={24} className="text-primary" />
-                    Live Batting ({currentInnings.batTeamName})
-                </h2>
-                
-                {miniscore.recentOvsStats && (
-                    <div className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-secondary/30 to-secondary/10 border border-border/50">
-                        <span className="text-2xl font-extrabold text-foreground whitespace-nowrap">
-                            {currentOverDisplay}
-                        </span>
-                        {recentBalls}
-                    </div>
-                )}
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-                
-                {miniscore.batsmanStriker && (
-                    <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 p-5 rounded-xl border border-border/50 order-1">
-                        <h3 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wide">Batsmen</h3>
-                        <div className="space-y-2">
-                            <BatsmanRow 
-                                batsman={{
-                                    batName: miniscore.batsmanStriker.name,
-                                    batRuns: miniscore.batsmanStriker.runs,
-                                    batBalls: miniscore.batsmanStriker.balls,
-                                    batFours: miniscore.batsmanStriker.fours,
-                                    batSixes: miniscore.batsmanStriker.sixes,
-                                    batStrikeRate: miniscore.batsmanStriker.strikeRate
-                                }}
-                                isStriker={true} 
-                            />
-                            
-                            {miniscore.batsmanNonStriker && (
-                                <div className="border-t border-border pt-3">
-                                    <BatsmanRow 
-                                        batsman={{
-                                            batName: miniscore.batsmanNonStriker.name,
-                                            batRuns: miniscore.batsmanNonStriker.runs,
-                                            batBalls: miniscore.batsmanNonStriker.balls,
-                                            batFours: miniscore.batsmanNonStriker.fours,
-                                            batSixes: miniscore.batsmanNonStriker.sixes,
-                                            batStrikeRate: miniscore.batsmanNonStriker.strikeRate
-                                        }}
-                                        isStriker={false} 
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-                
-                <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-5 rounded-xl flex justify-between items-center order-2 border border-primary/30">
-                    <div className="flex flex-col">
-                        <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">Score</p>
-                        <p className="text-4xl font-extrabold text-foreground">
-                            <AnimatedScore value={currentInnings.score} />/<AnimatedScore value={currentInnings.wickets} />
-                        </p>
-                    </div>
-                    <div className="flex flex-col text-right">
-                        <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">Overs</p>
-                        <p className="text-4xl font-extrabold text-primary">
-                            <AnimatedScore value={currentInnings.overs} />
-                        </p>
-                    </div>
-                </div>
-            </div>
+      <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+            <TrendingUp size={24} className="text-primary" />
+            Live Batting ({currentInnings.batTeamName})
+          </h2>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-                
-                {miniscore.bowlerStriker && (
-                    <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 p-5 rounded-xl border border-border/50 order-3">
-                        <h3 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wide">Current Bowler</h3>
-                        <div className="flex justify-between items-center">
-                            <span className="text-foreground font-bold text-lg">{miniscore.bowlerStriker.name}</span>
-                            <span className="text-xl font-extrabold text-foreground flex items-center gap-2">
-                                <AnimatedScore value={`${miniscore.bowlerStriker.wickets}/${miniscore.bowlerStriker.runs}`} />
-                                <span className="text-sm text-muted-foreground font-normal">
-                                    ({miniscore.bowlerStriker.overs})
-                                </span>
-                                <span className="text-sm text-muted-foreground font-normal whitespace-nowrap">
-                                    ECO: <AnimatedScore value={Number(miniscore.bowlerStriker.economy || 0).toFixed(2)} />
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-                )}
-                
-                <div className="bg-gradient-to-br from-accent/10 to-secondary/10 p-5 rounded-xl flex justify-between items-center order-4 border border-border/50">
-                    {(miniscore.currentRunRate !== undefined && miniscore.currentRunRate !== null) && (
-                        <div className="flex flex-col">
-                            <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">Current RR</p>
-                            <p className="text-4xl font-extrabold text-primary">
-                                <AnimatedScore value={Number(miniscore.currentRunRate).toFixed(2)} />
-                            </p>
-                        </div>
-                    )}
-                    {(miniscore.requiredRunRate !== undefined && miniscore.requiredRunRate !== null && miniscore.requiredRunRate > 0) && (
-                        <div className="flex flex-col text-right">
-                            <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">Required RR</p>
-                            <p className="text-4xl font-extrabold text-yellow-500">
-                                <AnimatedScore value={Number(miniscore.requiredRunRate).toFixed(2)} />
-                            </p>
-                        </div>
-                    )}
-                </div>
+          {miniscore.recentOvsStats && (
+            <div className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-secondary/30 to-secondary/10 border border-border/50">
+              <span className="text-2xl font-extrabold text-foreground whitespace-nowrap">
+                {currentOverDisplay}
+              </span>
+              {recentBalls}
             </div>
-            
-            {miniscore.lastWicket && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/30 rounded-xl">
-                    <p className="text-sm text-red-400 font-semibold">
-                        <strong>Last Wicket:</strong> <AnimatedScore value={miniscore.lastWicket} className="inline" />
-                    </p>
-                </div>
-            )}
-            {miniscore.status && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/30">
-                    <p className="text-center font-bold text-lg text-foreground">
-                        {miniscore.status}
-                    </p>
-                </div>
-            )}
+          )}
         </div>
-    );
-}, (prevProps, nextProps) => {
-    return (
-        JSON.stringify(prevProps.miniscore) === JSON.stringify(nextProps.miniscore) &&
-        JSON.stringify(prevProps.currentInnings) === JSON.stringify(nextProps.currentInnings)
-    );
-});
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+          {miniscore.batsmanStriker && (
+            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 p-5 rounded-xl border border-border/50 order-1">
+              <h3 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wide">
+                Batsmen
+              </h3>
+              <div className="space-y-2">
+                <BatsmanRow
+                  batsman={{
+                    batName: miniscore.batsmanStriker.name,
+                    batRuns: miniscore.batsmanStriker.runs,
+                    batBalls: miniscore.batsmanStriker.balls,
+                    batFours: miniscore.batsmanStriker.fours,
+                    batSixes: miniscore.batsmanStriker.sixes,
+                    batStrikeRate: miniscore.batsmanStriker.strikeRate,
+                  }}
+                  isStriker={true}
+                />
+
+                {miniscore.batsmanNonStriker && (
+                  <div className="border-t border-border pt-3">
+                    <BatsmanRow
+                      batsman={{
+                        batName: miniscore.batsmanNonStriker.name,
+                        batRuns: miniscore.batsmanNonStriker.runs,
+                        batBalls: miniscore.batsmanNonStriker.balls,
+                        batFours: miniscore.batsmanNonStriker.fours,
+                        batSixes: miniscore.batsmanNonStriker.sixes,
+                        batStrikeRate: miniscore.batsmanNonStriker.strikeRate,
+                      }}
+                      isStriker={false}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-5 rounded-xl flex justify-between items-center order-2 border border-primary/30">
+            <div className="flex flex-col">
+              <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
+                Score
+              </p>
+              <p className="text-4xl font-extrabold text-foreground">
+                <AnimatedScore value={currentInnings.score} />/
+                <AnimatedScore value={currentInnings.wickets} />
+              </p>
+            </div>
+            <div className="flex flex-col text-right">
+              <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
+                Overs
+              </p>
+              <p className="text-4xl font-extrabold text-primary">
+                <AnimatedScore value={currentInnings.overs} />
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+          {miniscore.bowlerStriker && (
+            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 p-5 rounded-xl border border-border/50 order-3">
+              <h3 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wide">
+                Current Bowler
+              </h3>
+              <div className="flex justify-between items-center">
+                <span className="text-foreground font-bold text-lg">
+                  {miniscore.bowlerStriker.name}
+                </span>
+                <span className="text-xl font-extrabold text-foreground flex items-center gap-2">
+                  <AnimatedScore
+                    value={`${miniscore.bowlerStriker.wickets}/${miniscore.bowlerStriker.runs}`}
+                  />
+                  <span className="text-sm text-muted-foreground font-normal">
+                    ({miniscore.bowlerStriker.overs})
+                  </span>
+                  <span className="text-sm text-muted-foreground font-normal whitespace-nowrap">
+                    ECO:{" "}
+                    <AnimatedScore
+                      value={Number(
+                        miniscore.bowlerStriker.economy || 0
+                      ).toFixed(2)}
+                    />
+                  </span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gradient-to-br from-accent/10 to-secondary/10 p-5 rounded-xl flex justify-between items-center order-4 border border-border/50">
+            {miniscore.currentRunRate !== undefined &&
+              miniscore.currentRunRate !== null && (
+                <div className="flex flex-col">
+                  <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
+                    Current RR
+                  </p>
+                  <p className="text-4xl font-extrabold text-primary">
+                    <AnimatedScore
+                      value={Number(miniscore.currentRunRate).toFixed(2)}
+                    />
+                  </p>
+                </div>
+              )}
+            {miniscore.requiredRunRate !== undefined &&
+              miniscore.requiredRunRate !== null &&
+              miniscore.requiredRunRate > 0 && (
+                <div className="flex flex-col text-right">
+                  <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
+                    Required RR
+                  </p>
+                  <p className="text-4xl font-extrabold text-yellow-500">
+                    <AnimatedScore
+                      value={Number(miniscore.requiredRunRate).toFixed(2)}
+                    />
+                  </p>
+                </div>
+              )}
+          </div>
+        </div>
+
+        {miniscore.lastWicket && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/30 rounded-xl">
+            <p className="text-sm text-red-400 font-semibold">
+              <strong>Last Wicket:</strong>{" "}
+              <AnimatedScore value={miniscore.lastWicket} className="inline" />
+            </p>
+          </div>
+        )}
+        {miniscore.status && (
+          <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/30">
+            <p className="text-center font-bold text-lg text-foreground">
+              {miniscore.status}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      JSON.stringify(prevProps.miniscore) ===
+        JSON.stringify(nextProps.miniscore) &&
+      JSON.stringify(prevProps.currentInnings) ===
+        JSON.stringify(nextProps.currentInnings)
+    );
+  }
+);
 
 LiveView.displayName = "LiveView";
 
@@ -629,31 +694,43 @@ const NotificationModal = ({ isOpen, onClose, team1, team2, onSubscribe }) => {
             <Bell className="text-primary" size={20} />
             Get Alerts
           </h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground"
+          >
             <X size={24} />
           </button>
         </div>
         <p className="text-sm text-muted-foreground mb-6">
-          Add these teams to your watchlist to receive live notifications for wickets and boundaries.
+          Add these teams to your watchlist to receive live notifications for
+          wickets and boundaries.
         </p>
         <div className="space-y-3">
-          <button 
+          <button
             onClick={() => onSubscribe([team1])}
             className="w-full flex items-center justify-between p-3 rounded-xl bg-secondary/30 hover:bg-primary/10 border border-border hover:border-primary/50 transition-all group"
           >
-            <span className="font-bold text-foreground group-hover:text-primary">{team1}</span>
-            <span className="text-xs font-semibold bg-secondary px-2 py-1 rounded text-muted-foreground group-hover:bg-primary group-hover:text-white transition-colors">Add</span>
+            <span className="font-bold text-foreground group-hover:text-primary">
+              {team1}
+            </span>
+            <span className="text-xs font-semibold bg-secondary px-2 py-1 rounded text-muted-foreground group-hover:bg-primary group-hover:text-white transition-colors">
+              Add
+            </span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => onSubscribe([team2])}
             className="w-full flex items-center justify-between p-3 rounded-xl bg-secondary/30 hover:bg-primary/10 border border-border hover:border-primary/50 transition-all group"
           >
-            <span className="font-bold text-foreground group-hover:text-primary">{team2}</span>
-            <span className="text-xs font-semibold bg-secondary px-2 py-1 rounded text-muted-foreground group-hover:bg-primary group-hover:text-white transition-colors">Add</span>
+            <span className="font-bold text-foreground group-hover:text-primary">
+              {team2}
+            </span>
+            <span className="text-xs font-semibold bg-secondary px-2 py-1 rounded text-muted-foreground group-hover:bg-primary group-hover:text-white transition-colors">
+              Add
+            </span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => onSubscribe([team1, team2])}
             className="w-full flex items-center justify-center gap-2 p-3 mt-2 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 shadow-lg transition-all"
           >
@@ -677,11 +754,12 @@ const LiveDetails = ({ theme, toggleTheme }) => {
   const [isPinned, setIsPinned] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [extensionInstalled, setExtensionInstalled] = useState(false);
-  const [isExtensionCheckComplete, setIsExtensionCheckComplete] = useState(false); 
-  
+  const [isExtensionCheckComplete, setIsExtensionCheckComplete] =
+    useState(false);
+
   // NEW STATES for Notification Modal
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
-  const [notifSuccessMsg, setNotifSuccessMsg] = useState('');
+  const [notifSuccessMsg, setNotifSuccessMsg] = useState("");
 
   const intervalRef = useRef(null);
   const isMountedRef = useRef(true);
@@ -695,45 +773,45 @@ const LiveDetails = ({ theme, toggleTheme }) => {
     };
 
     checkDesktop();
-    window.addEventListener('resize', checkDesktop);
-    
+    window.addEventListener("resize", checkDesktop);
+
     // 2. Extension Check Logic
     const checkExtension = () => {
       // Send a ping and set up the response listener
-      
+
       const handleMessage = (event) => {
-        if (event.data.type === 'EXTENSION_RESPONSE') {
+        if (event.data.type === "EXTENSION_RESPONSE") {
           setExtensionInstalled(true);
           setIsExtensionCheckComplete(true); // Signal completion on success
-          window.removeEventListener('message', handleMessage); // Remove on success
-          console.log("Extension Verified! State updated."); 
+          window.removeEventListener("message", handleMessage); // Remove on success
+          console.log("Extension Verified! State updated.");
         }
       };
-      
-      window.addEventListener('message', handleMessage);
-      
+
+      window.addEventListener("message", handleMessage);
+
       // Try to send a message to the extension
-      window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
-      
+      window.postMessage({ type: "CHECK_EXTENSION" }, "*");
+
       // FALLBACK TIMEOUT: If no response in 500ms, assume not installed and signal completion
       const timeout = setTimeout(() => {
-          setIsExtensionCheckComplete(true);
-          window.removeEventListener('message', handleMessage);
+        setIsExtensionCheckComplete(true);
+        window.removeEventListener("message", handleMessage);
       }, 500);
 
       // Return cleanup function to remove the listener and clear timeout
       return () => {
-          window.removeEventListener('message', handleMessage);
-          clearTimeout(timeout);
+        window.removeEventListener("message", handleMessage);
+        clearTimeout(timeout);
       };
     };
-    
+
     // 3. Execute the Extension Check
     const cleanupMessageListener = checkExtension();
 
     // 4. Cleanup Function (Returned from useEffect)
     return () => {
-      window.removeEventListener('resize', checkDesktop);
+      window.removeEventListener("resize", checkDesktop);
       // Cleanup the message listener using the function returned from checkExtension
       if (cleanupMessageListener) {
         cleanupMessageListener();
@@ -866,63 +944,75 @@ const LiveDetails = ({ theme, toggleTheme }) => {
     if (!extensionInstalled) {
       // Show alert only AFTER the check is complete AND the state is false
       window.alert(
-        'Cricket Score Extension is not installed!\n\n' +
-        'To use this feature:\n' +
-        '1. Download the extension files\n' +
-        '2. Go to chrome://extensions/\n' +
-        '3. Enable "Developer mode"\n' +
-        '4. Click "Load unpacked"\n' +
-        '5. Select the extension folder\n\n' +
-        'Then refresh this page and try again!'
+        "Cricket Score Extension is not installed!\n\n" +
+          "To use this feature:\n" +
+          "1. Download the extension files\n" +
+          "2. Go to chrome://extensions/\n" +
+          '3. Enable "Developer mode"\n' +
+          '4. Click "Load unpacked"\n' +
+          "5. Select the extension folder\n\n" +
+          "Then refresh this page and try again!"
       );
       return;
     }
-    
+
     // Create the required data structure for the background script's pinMatch action
     const initialPinData = {
       matchId: matchHeader.matchId,
       team1: {
         name: matchHeader.team1?.sName || matchHeader.team1?.name,
-        score: displayScore1 ? `${displayScore1.score}/${displayScore1.wickets}` : '-'
+        score: displayScore1
+          ? `${displayScore1.score}/${displayScore1.wickets}`
+          : "-",
       },
       team2: {
         name: matchHeader.team2?.sName || matchHeader.team2?.name,
-        score: displayScore2 ? `${displayScore2.score}/${displayScore2.wickets}` : '-'
+        score: displayScore2
+          ? `${displayScore2.score}/${displayScore2.wickets}`
+          : "-",
       },
-      currentBall: miniscore?.recentOvsStats?.split(' ').pop().trim() || '-',
-      currentOver: miniscore?.overs || '-',
-      currentOverStats: miniscore?.recentOvsStats || '-',
+      currentBall: miniscore?.recentOvsStats?.split(" ").pop().trim() || "-",
+      currentOver: miniscore?.overs || "-",
+      currentOverStats: miniscore?.recentOvsStats || "-",
       status: matchHeader.state,
-      striker: miniscore?.batsmanStriker ? {
-        name: miniscore.batsmanStriker.name,
-        runs: miniscore.batsmanStriker.runs,
-        balls: miniscore.batsmanStriker.balls
-      } : null,
-      nonStriker: miniscore?.batsmanNonStriker ? {
-        name: miniscore.batsmanNonStriker.name,
-        runs: miniscore.batsmanNonStriker.runs,
-        balls: miniscore.batsmanNonStriker.balls
-      } : null,
-      bowler: miniscore?.bowlerStriker ? {
-        name: miniscore.bowlerStriker.name,
-        wickets: miniscore.bowlerStriker.wickets,
-        runs: miniscore.bowlerStriker.runs,
-        overs: miniscore.bowlerStriker.overs
-      } : null,
+      striker: miniscore?.batsmanStriker
+        ? {
+            name: miniscore.batsmanStriker.name,
+            runs: miniscore.batsmanStriker.runs,
+            balls: miniscore.batsmanStriker.balls,
+          }
+        : null,
+      nonStriker: miniscore?.batsmanNonStriker
+        ? {
+            name: miniscore.batsmanNonStriker.name,
+            runs: miniscore.batsmanNonStriker.runs,
+            balls: miniscore.batsmanNonStriker.balls,
+          }
+        : null,
+      bowler: miniscore?.bowlerStriker
+        ? {
+            name: miniscore.bowlerStriker.name,
+            wickets: miniscore.bowlerStriker.wickets,
+            runs: miniscore.bowlerStriker.runs,
+            overs: miniscore.bowlerStriker.overs,
+          }
+        : null,
     };
-
 
     if (isPinned) {
       // Unpin match
-      window.postMessage({ type: 'UNPIN_MATCH' }, '*');
+      window.postMessage({ type: "UNPIN_MATCH" }, "*");
       setIsPinned(false);
     } else {
       // Pin match - send data to extension
-      window.postMessage({ 
-        type: 'PIN_MATCH', 
-        data: initialPinData
-      }, '*');
-      
+      window.postMessage(
+        {
+          type: "PIN_MATCH",
+          data: initialPinData,
+        },
+        "*"
+      );
+
       setIsPinned(true);
     }
   };
@@ -958,17 +1048,20 @@ const LiveDetails = ({ theme, toggleTheme }) => {
   const handleSubscribe = async (teamsToAdd) => {
     try {
       // Call the new API endpoint
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/preferences/add`, {
-        teams: teamsToAdd
-      }, { withCredentials: true });
+      await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/preferences/add`,
+        {
+          teams: teamsToAdd,
+        },
+        { withCredentials: true }
+      );
 
       // Show success feedback
       setIsNotifModalOpen(false);
-      setNotifSuccessMsg(`Subscribed to ${teamsToAdd.join(' & ')}`);
-      
-      // Clear message after 3 seconds
-      setTimeout(() => setNotifSuccessMsg(''), 3000);
+      setNotifSuccessMsg(`Subscribed to ${teamsToAdd.join(" & ")}`);
 
+      // Clear message after 3 seconds
+      setTimeout(() => setNotifSuccessMsg(""), 3000);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         alert("Please login to subscribe to notifications.");
@@ -980,13 +1073,12 @@ const LiveDetails = ({ theme, toggleTheme }) => {
     }
   };
 
-
   if (loading || error || !matchData || !matchData.matchHeader) {
     if (loading)
       return (
         <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader />
-    </div>
+          <Loader />
+        </div>
       );
     if (error || !matchData || !matchData.matchHeader)
       return (
@@ -1059,7 +1151,7 @@ const LiveDetails = ({ theme, toggleTheme }) => {
       />
 
       {/* NEW: Notification Modal */}
-      <NotificationModal 
+      <NotificationModal
         isOpen={isNotifModalOpen}
         onClose={() => setIsNotifModalOpen(false)}
         team1={team1Name}
@@ -1077,7 +1169,6 @@ const LiveDetails = ({ theme, toggleTheme }) => {
 
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
-
           <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-2xl">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-5">
               <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -1087,9 +1178,14 @@ const LiveDetails = ({ theme, toggleTheme }) => {
                     {matchHeader.matchDescription}
                   </h1>
                   <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-sm text-muted-foreground">
+                    {/* Wrap the Series Name in a Link */}
+                    <Link
+                      to={`/series/${matchHeader.seriesId - 123456}/${slugify(matchHeader.seriesName)}`}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                    >
                       {matchHeader.seriesName}
-                    </p>
+                    </Link>
+
                     <span
                       className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg ${getFormatBadgeColor(
                         matchHeader.matchFormat
@@ -1154,9 +1250,8 @@ const LiveDetails = ({ theme, toggleTheme }) => {
               </div>
 
               <div className="flex gap-3">
-                
                 {/* NEW: Bell Button for Notifications */}
-                <button 
+                <button
                   onClick={handleOpenNotifModal}
                   className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-300 bg-secondary/50 text-foreground hover:bg-yellow-500/10 hover:text-yellow-500 border border-transparent hover:border-yellow-500/50"
                   title="Get Notifications for this match"
