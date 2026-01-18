@@ -27,7 +27,8 @@ const ServerMonitor = ({ children }) => {
         setIsServerDown(true);
       }
     };
-    const interval = setInterval(checkHealth, 5000);
+    //every 2 mins
+    const interval = setInterval(checkHealth, 120000);
     checkHealth();
     return () => clearInterval(interval);
   }, [healthUrl]);
