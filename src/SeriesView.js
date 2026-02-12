@@ -336,7 +336,7 @@ const SeriesView = () => {
       case "stats":
         return <StatsTab seriesId={seriesId} />;
       case "squads":
-        return <SquadsTab />;
+        return <SquadsTab seriesId={seriesId}/>;
       default:
         return <DefaultTab />;
     }
@@ -526,19 +526,288 @@ const MatchesTab = ({ matches, searchQuery }) => {
     );
   };
 
-  const SquadsTab = () => {
+  
+const SquadsTab = ({ seriesId }) => {
+  const [teamsData, setTeamsData] = useState(null);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [squadData, setSquadData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [squadLoading, setSquadLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch teams list
+  useEffect(() => {
+    const fetchTeams = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_BASE_URL}/series/${seriesId}/squads`
+        );
+        const data = await response.json();
+
+        if (data.status === "success") {
+          setTeamsData(data);
+          // Auto-select first team
+          if (data.teams && data.teams.length > 0) {
+            setSelectedTeam(data.teams[0]);
+          }
+        } else {
+          setError("Squads not available for this series");
+        }
+      } catch (err) {
+        console.error("Error fetching teams:", err);
+        setError("Failed to load squads");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeams();
+  }, [seriesId]);
+
+  // Fetch squad when team is selected
+  useEffect(() => {
+    if (!selectedTeam) return;
+
+    const fetchSquad = async () => {
+      setSquadLoading(true);
+
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_API_BASE_URL}/series/${seriesId}/squads/${selectedTeam.squadId}`
+        );
+        const data = await response.json();
+
+        if (data.status === "success") {
+          setSquadData(data);
+        } else {
+          setSquadData(null);
+        }
+      } catch (err) {
+        console.error("Error fetching squad:", err);
+        setSquadData(null);
+      } finally {
+        setSquadLoading(false);
+      }
+    };
+
+    fetchSquad();
+  }, [selectedTeam, seriesId]);
+
+  const handleTeamSelect = (team) => {
+    setSelectedTeam(team);
+    setSquadData(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-12 w-48 bg-muted rounded mb-6"></div>
+          <div className="flex gap-4 mb-8 overflow-x-auto">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-20 w-32 bg-muted rounded-xl"></div>
+            ))}
+          </div>
+          <div className="h-96 bg-muted/30 rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32">
+        <div className="text-8xl mb-6">👥</div>
+        <p className="text-2xl font-bold text-foreground mb-3">{error}</p>
+      </div>
+    );
+  }
+
+  if (!teamsData?.teams || teamsData.teams.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32">
         <div className="text-8xl mb-6">👥</div>
         <p className="text-2xl font-bold text-foreground mb-3">
-          Squads Coming Soon
+          No Squads Available
         </p>
         <p className="text-lg text-muted-foreground">
-          Squad information will be available soon
+          Squad information is not available for this series
         </p>
       </div>
     );
-  };
+  }
+
+  // Group players by category
+  const groupedPlayers = squadData?.players?.reduce((acc, player) => {
+    if (player.isHeader) {
+      acc.push({ header: player.name, players: [] });
+    } else if (acc.length > 0) {
+      acc[acc.length - 1].players.push(player);
+    }
+    return acc;
+  }, []) || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Team Selection */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Users className="text-primary" size={28} />
+          Select Team
+        </h2>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {teamsData.teams.map((team) => (
+            <button
+              key={team.squadId}
+              onClick={() => handleTeamSelect(team)}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300 min-w-[120px] ${
+                selectedTeam?.squadId === team.squadId
+                  ? "border-primary bg-primary/10 shadow-lg scale-105"
+                  : "border-border bg-card hover:border-primary/50 hover:bg-secondary/50"
+              }`}
+            >
+              {team.imageUrl && (
+                <img
+                  src={team.imageUrl}
+                  alt={team.teamName}
+                  className="w-16 h-12 object-contain"
+                  loading="lazy"
+                />
+              )}
+              <span className="text-sm font-bold text-foreground text-center">
+                {team.teamName}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Squad Display */}
+      {squadLoading ? (
+        <div className="animate-pulse">
+          <div className="h-96 bg-muted/30 rounded-xl"></div>
+        </div>
+      ) : squadData ? (
+        <div 
+          className="relative rounded-2xl overflow-hidden shadow-2xl"
+          style={{
+            backgroundImage: 'url(/cricbg.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        >
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70"></div>
+          
+          {/* Content */}
+          <div className="relative z-10 p-6 sm:p-8">
+            {/* Team Header */}
+            <div className="flex items-center justify-center gap-4 mb-8 pb-6 border-b-2 border-white/30">
+              {selectedTeam?.imageUrl && (
+                <img
+                  src={selectedTeam.imageUrl}
+                  alt={selectedTeam.teamName}
+                  className="w-20 h-16 object-contain"
+                />
+              )}
+              <h2 className="text-3xl sm:text-4xl font-bold text-white drop-shadow-lg">
+                {selectedTeam?.teamName}
+              </h2>
+            </div>
+
+            {/* Players Grid */}
+            <div className="space-y-8">
+              {groupedPlayers.map((group, groupIdx) => (
+                <div key={groupIdx} className="space-y-4">
+                  {/* Category Header */}
+                  <div className="bg-gradient-to-r from-primary/80 to-accent/80 px-4 py-2 rounded-lg">
+                    <h3 className="text-xl font-bold text-white drop-shadow-md">
+                      {group.header}
+                    </h3>
+                  </div>
+
+                  {/* Players Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {group.players.map((player, playerIdx) => (
+                      <div
+                        key={playerIdx}
+                        className="group bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-4 hover:from-white/20 hover:to-white/10 hover:border-white/40 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                      >
+                        {/* Player Image */}
+                        <div className="flex items-center gap-4 mb-3">
+                          {player.imageUrl && (
+                            <div className="relative">
+                              <img
+                                src={player.imageUrl}
+                                alt={player.name}
+                                className="w-16 h-16 rounded-full object-cover border-2 border-white/30 group-hover:border-primary/80 transition-all"
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                              {player.captain && (
+                                <div className="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-lg">
+                                  C
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-white text-sm sm:text-base truncate drop-shadow-md">
+                              {player.name}
+                            </h4>
+                            <p className="text-xs text-white/80 truncate">
+                              {player.role}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Player Details */}
+                        <div className="space-y-1 text-xs text-white/90">
+                          {player.battingStyle && (
+                            <div className="flex items-start gap-2">
+                              <span className="text-white/60 min-w-[50px]">Bat:</span>
+                              <span className="flex-1 font-medium">{player.battingStyle}</span>
+                            </div>
+                          )}
+                          {player.bowlingStyle && (
+                            <div className="flex items-start gap-2">
+                              <span className="text-white/60 min-w-[50px]">Bowl:</span>
+                              <span className="flex-1 font-medium">{player.bowlingStyle}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Total Players Count */}
+            <div className="mt-8 pt-6 border-t-2 border-white/30 text-center">
+              <p className="text-white/80 font-semibold">
+                Total Players: {squadData.players.filter(p => !p.isHeader).length}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-32">
+          <div className="text-6xl mb-4">👥</div>
+          <p className="text-xl font-semibold text-muted-foreground">
+            Select a team to view squad
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -256,6 +256,9 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
               </Link>
               <PlayerMegaMenu isOpen={playersMenuOpen} onClose={() => setPlayersMenuOpen(false)} navigate={navigate} />
             </div>
+            <NavLinkItem to="/notifications" icon={Bell} isActive={isActive('/notifications')} isScrolled={isScrolled}>
+                Alerts
+              </NavLinkItem>
           </div>
 
           <div className="flex items-center gap-2">
