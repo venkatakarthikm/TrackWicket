@@ -165,6 +165,9 @@ function App() {
                 <Route path="/stats/:statSlug" element={<Navigate to={(location) => `/stats/${location.pathname.split("/")[2]}/odi`} replace />} />
                 <Route path="/stats/:statSlug/:formatSlug" element={<StatsPage {...themeProps} />} />
                 <Route path="/stats/:statSlug/:formatSlug/:year" element={<StatsPage {...themeProps} />} />
+                <Route path="/series/:seriesId/:seriesSlug/:tab" element={<SeriesView {...themeProps} />} />
+                <Route path="/series/:seriesId/:seriesSlug" element={<SeriesView {...themeProps} />} />
+                <Route path="/series/:seriesId" element={<SeriesView {...themeProps} />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Footer />
