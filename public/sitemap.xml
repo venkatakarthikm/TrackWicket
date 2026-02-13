@@ -68,19 +68,19 @@
 
   <!-- Men's Bowling Rankings -->
   <url>
-    <loc>https://trackwicket.tech/rankings/men/bowlers/test</loc>
+    <loc>https://trackwicket.tech/rankings/men/bowler/test</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://trackwicket.tech/rankings/men/bowlers/odi</loc>
+    <loc>https://trackwicket.tech/rankings/men/bowler/odi</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://trackwicket.tech/rankings/men/bowlers/t20</loc>
+    <loc>https://trackwicket.tech/rankings/men/bowler/t20</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -88,19 +88,19 @@
 
   <!-- Men's All-Rounder Rankings -->
   <url>
-    <loc>https://trackwicket.tech/rankings/men/allrounders/test</loc>
+    <loc>https://trackwicket.tech/rankings/men/all-rounder/test</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://trackwicket.tech/rankings/men/allrounders/odi</loc>
+    <loc>https://trackwicket.tech/rankings/men/all-rounder/odi</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://trackwicket.tech/rankings/men/allrounders/t20</loc>
+    <loc>https://trackwicket.tech/rankings/men/all-rounder/t20</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -108,7 +108,7 @@
 
   <!-- Men's Team Rankings -->
   <url>
-    <loc>https://trackwicket.tech/rankings/men/teams/test</loc>
+    <loc>https://trackwicket.tech/rankings/men/team/test</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -142,13 +142,13 @@
 
   <!-- Women's Bowling Rankings -->
   <url>
-    <loc>https://trackwicket.tech/rankings/women/bowlers/odi</loc>
+    <loc>https://trackwicket.tech/rankings/women/bowler/odi</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://trackwicket.tech/rankings/women/bowlers/t20</loc>
+    <loc>https://trackwicket.tech/rankings/women/bowler/t20</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -156,13 +156,13 @@
 
   <!-- Women's All-Rounder Rankings -->
   <url>
-    <loc>https://trackwicket.tech/rankings/women/allrounders/odi</loc>
+    <loc>https://trackwicket.tech/rankings/women/all-rounder/odi</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://trackwicket.tech/rankings/women/allrounders/t20</loc>
+    <loc>https://trackwicket.tech/rankings/women/all-rounder/t20</loc>
     <lastmod>2026-02-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

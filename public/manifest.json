@@ -4,18 +4,18 @@
   "description": "Live cricket scores, ICC rankings, player stats, and match schedules",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "https://trackwicket.tech/twmini.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "twmini.png",
+      "src": "https://trackwicket.tech/TW.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "twmini.png",
+      "src": "https://trackwicket.tech/TW.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
