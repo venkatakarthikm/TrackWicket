@@ -3,6 +3,64 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './Navbar';
 import { Loader2, AlertTriangle, BarChart3, ChevronDown } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import SEO from './SEO';
+
+// Add this function to generate SEO config based on stat type
+const getStatsSEOConfig = (statSlug, formatSlug) => {
+  const statTypeMap = {
+    'most-runs': 'Most Runs',
+    'most-wickets': 'Most Wickets',
+    'best-average': 'Best Batting Average',
+    'best-strike-rate': 'Best Strike Rate',
+    'best-economy': 'Best Bowling Economy',
+    'most-sixes': 'Most Sixes',
+    'most-fours': 'Most Fours',
+    'most-hundreds': 'Most Centuries'
+  };
+
+  const statName = statTypeMap[statSlug] || 'Cricket Statistics';
+  const format = formatSlug.toUpperCase();
+  
+  const title = `${statName} in ${format} Cricket - All Time Records`;
+  const description = `View ${statName.toLowerCase()} in ${format} cricket. Complete list of all-time leading cricketers with detailed statistics, records, and career performance on Track Wicket by Muchu Venkata Karthik.`;
+  const keywords = `${statName}, ${format} cricket stats, cricket records, ${format} statistics, all time records, cricket leaders, ${statSlug} ${format}, Track Wicket stats`;
+
+  return {
+    title,
+    description,
+    keywords,
+    canonical: `https://trackwicket.tech/stats/${statSlug}/${formatSlug}`,
+    breadcrumbs: [
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Statistics",
+        "item": "https://trackwicket.tech/stats"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": statName,
+        "item": `https://trackwicket.tech/stats/${statSlug}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": format,
+        "item": `https://trackwicket.tech/stats/${statSlug}/${formatSlug}`
+      }
+    ],
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": `${statName} - ${format} Cricket`,
+      "description": description,
+      "keywords": keywords,
+      "sport": "Cricket",
+      "url": `https://trackwicket.tech/stats/${statSlug}/${formatSlug}`
+    }
+  };
+};
 
 // Utility function to create a clean slug from a player name for the URL
 const createSlug = (text) => {
@@ -19,6 +77,7 @@ const StatsPage = ({ theme, toggleTheme }) => {
     const [statsData, setStatsData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const seoConfig = getStatsSEOConfig(statSlug, formatSlug);
     
     // Default to 'all' for API call since the filter is removed
     const currentYear = 'all'; 
@@ -26,7 +85,7 @@ const StatsPage = ({ theme, toggleTheme }) => {
     
     // ... (keep state management and titles mapping)
     const currentFormat = formatSlug || 'odi';
-    const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
+    const currentUrl = `https://trackwicket.tech${location.pathname}`;
     
     // Static mapping for display purposes
     const statTitleMap = {
@@ -174,6 +233,8 @@ const StatsPage = ({ theme, toggleTheme }) => {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
+            <SEO {...seoConfig} />
+            <h1 style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>Track Wicket - {seoConfig.title}</h1>
             <Helmet>
                 {/* Standard SEO */}
                 <title>{dynamicTitle}</title>
@@ -186,7 +247,7 @@ const StatsPage = ({ theme, toggleTheme }) => {
                 <meta property="og:title" content={dynamicTitle} />
                 <meta property="og:description" content={dynamicDesc} />
                 <meta property="og:url" content={currentUrl} />
-                <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+                <meta property="og:image" content="https://trackwicket.tech/TW.png" />
 
                 {/* Twitter Card */}
                 <meta name="twitter:card" content="summary" />

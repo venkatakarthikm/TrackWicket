@@ -1,39 +1,367 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+
+  <!-- Homepage - Highest Priority -->
   <url>
-    <loc>https://trackwicket.onrender.com/live</loc>
-    <lastmod>2026-01-11</lastmod>
+    <loc>https://trackwicket.tech/</loc>
+    <lastmod>2026-02-13</lastmod>
     <changefreq>always</changefreq>
     <priority>1.0</priority>
   </url>
 
+  <!-- Live Scores - Critical for SEO -->
   <url>
-    <loc>https://trackwicket.onrender.com/recent</loc>
-    <lastmod>2026-01-11</lastmod>
+    <loc>https://trackwicket.tech/live</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>always</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Recent Matches -->
+  <url>
+    <loc>https://trackwicket.tech/recent</loc>
+    <lastmod>2026-02-13</lastmod>
     <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Upcoming Matches -->
+  <url>
+    <loc>https://trackwicket.tech/upcoming</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Players Section -->
+  <url>
+    <loc>https://trackwicket.tech/players</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
 
+  <!-- Rankings - All Formats & Categories -->
+  <!-- Men's Batting Rankings -->
   <url>
-    <loc>https://trackwicket.onrender.com/players</loc>
+    <loc>https://trackwicket.tech/rankings/men/batsmen/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/batsmen/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/batsmen/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Men's Bowling Rankings -->
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/bowlers/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/bowlers/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/bowlers/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Men's All-Rounder Rankings -->
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/allrounders/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/allrounders/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/allrounders/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Men's Team Rankings -->
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/teams/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/teams/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/men/teams/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Women's Batting Rankings -->
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/batsmen/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/batsmen/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Women's Bowling Rankings -->
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/bowlers/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/bowlers/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Women's All-Rounder Rankings -->
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/allrounders/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/allrounders/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Women's Team Rankings -->
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/teams/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/rankings/women/teams/t20</loc>
+    <lastmod>2026-02-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
+  <!-- Stats Pages - Most Runs -->
   <url>
-    <loc>https://trackwicket.onrender.com/rankings/men/batsmen/odi</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
+    <loc>https://trackwicket.tech/stats/most-runs/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-runs/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-runs/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Stats Pages - Most Wickets -->
+  <url>
+    <loc>https://trackwicket.tech/stats/most-wickets/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-wickets/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-wickets/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Stats Pages - Best Average -->
+  <url>
+    <loc>https://trackwicket.tech/stats/best-average/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/best-average/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/best-average/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Stats Pages - Best Strike Rate -->
+  <url>
+    <loc>https://trackwicket.tech/stats/best-strike-rate/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/best-strike-rate/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/best-strike-rate/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Stats Pages - Best Economy -->
+  <url>
+    <loc>https://trackwicket.tech/stats/best-economy/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/best-economy/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/best-economy/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Stats Pages - Most Sixes -->
+  <url>
+    <loc>https://trackwicket.tech/stats/most-sixes/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-sixes/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-sixes/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Stats Pages - Most Fours -->
+  <url>
+    <loc>https://trackwicket.tech/stats/most-fours/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-fours/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-fours/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Stats Pages - Most Hundreds -->
+  <url>
+    <loc>https://trackwicket.tech/stats/most-hundreds/test</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-hundreds/odi</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://trackwicket.tech/stats/most-hundreds/t20</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Account & Legal Pages -->
+  <url>
+    <loc>https://trackwicket.tech/account</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://trackwicket.onrender.com/stats/most-runs/odi</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://trackwicket.tech/privacy</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
+
   <url>
-    <loc>https://trackwicket.onrender.com/stats/most-wickets/t20</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <loc>https://trackwicket.tech/terms</loc>
+    <lastmod>2026-02-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
+
 </urlset>

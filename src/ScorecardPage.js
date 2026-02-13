@@ -12,6 +12,72 @@ import {
 } from "lucide-react";
 import Navbar from "./Navbar";
 import { Helmet } from "react-helmet-async";
+import SEO from './SEO';
+
+// Add this function to generate scorecard-specific SEO
+const getScorecardSEOConfig = (matchData) => {
+  if (!matchData) {
+    return {
+      title: "Cricket Match Scorecard - Track Wicket",
+      description: "View detailed cricket match scorecard with batting, bowling, and fall of wickets on Track Wicket.",
+      keywords: "cricket scorecard, match scorecard, batting scorecard, bowling figures, Track Wicket",
+      canonical: window.location.href
+    };
+  }
+
+  const team1 = matchData.team1?.name || "Team 1";
+  const team2 = matchData.team2?.name || "Team 2";
+  const format = matchData.matchFormat || "Cricket";
+  const series = matchData.series?.name || "";
+  
+  const title = `${team1} vs ${team2} Scorecard - ${format} Match`;
+  const description = `Detailed scorecard for ${team1} vs ${team2} ${format} match. View complete batting and bowling figures, fall of wickets, partnerships, and match summary for ${series} on Track Wicket.`;
+  const keywords = `${team1} vs ${team2} scorecard, ${format} scorecard, cricket scorecard, ${team1} ${team2}, batting figures, bowling analysis, ${series} scorecard, Track Wicket scorecard`;
+
+  return {
+    title,
+    description,
+    keywords,
+    canonical: window.location.href,
+    breadcrumbs: [
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Matches",
+        "item": "https://trackwicket.tech/live"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": `${team1} vs ${team2}`,
+        "item": window.location.href.replace('/scorecard', '')
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "Scorecard",
+        "item": window.location.href
+      }
+    ],
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "SportsEvent",
+      "name": `${team1} vs ${team2} Scorecard`,
+      "description": description,
+      "sport": "Cricket",
+      "competitor": [
+        {
+          "@type": "SportsTeam",
+          "name": team1
+        },
+        {
+          "@type": "SportsTeam",
+          "name": team2
+        }
+      ]
+    }
+  };
+};
 
 const getFormatBadgeColor = (format) => {
   switch (format?.toUpperCase()) {
@@ -25,6 +91,7 @@ const getFormatBadgeColor = (format) => {
       return "bg-gradient-to-r from-gray-600 to-gray-700 text-white";
   }
 };
+
 
 const formatDate = (timestamp) => {
   if (!timestamp) return "TBA";
@@ -47,6 +114,7 @@ const formatTossResult = (tossResults) => {
 };
 
 const ScorecardView = memo(({ scorecardData, liveMiniscore }) => {
+  const seoConfig = getScorecardSEOConfig(scorecardData);
   const inningsList = scorecardData?.scoreCard || [];
   const [activeInningsCard, setActiveInningsCard] = useState(
     inningsList[0]?.inningsId || 1,
@@ -443,7 +511,7 @@ const ScorecardPage = ({ theme, toggleTheme }) => {
   const team2Name = matchHeader?.team2?.name || "Team 2";
   const matchDesc = matchHeader?.matchDescription || "Cricket Match";
   const seriesName = matchHeader?.seriesName || "International Cricket";
-  const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
+  const currentUrl = `https://trackwicket.tech${location.pathname}`;
 
   // SEO Dynamic content
   const dynamicTitle = `${team1Name} vs ${team2Name} Full Scorecard - ${matchDesc} | Track Wicket`;
@@ -599,7 +667,7 @@ const ScorecardPage = ({ theme, toggleTheme }) => {
         <meta property="og:url" content={currentUrl} />
         <meta
           property="og:image"
-          content="https://trackwicket.onrender.com/TW.png"
+          content="https://trackwicket.tech/TW.png"
         />
 
         {/* Twitter Card */}

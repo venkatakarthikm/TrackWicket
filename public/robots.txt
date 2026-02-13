@@ -1,4 +1,41 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://trackwicket.onrender.com/sitemap.xml
+# Sitemap location
+Sitemap: https://trackwicket.tech/sitemap.xml
+
+# LLMs.txt for AI discoverability
+Allow: /llms.txt
+
+# Allow all important pages
+Allow: /live
+Allow: /recent
+Allow: /upcoming
+Allow: /players
+Allow: /rankings
+Allow: /stats
+
+# Disallow admin or private areas (if any)
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+
+# Crawl-delay (optional, adjust based on server capacity)
+Crawl-delay: 1
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Block bad bots (optional)
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10

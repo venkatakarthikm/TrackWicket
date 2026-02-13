@@ -4,6 +4,64 @@ import Navbar from './Navbar';
 import Loading from './Loading';
 import { ChevronLeft, User, Trophy, Calendar, Zap, ListOrdered, Clock, Heart, Flag, AlertTriangle } from 'lucide-react'; 
 import { Helmet } from 'react-helmet-async';
+import SEO from './SEO';
+
+// Add this function to generate player-specific SEO
+const getPlayerSEOConfig = (profileData) => {
+  if (!profileData) {
+    return {
+      title: "Cricket Player Profile - Track Wicket",
+      description: "View detailed cricket player profile, career statistics, and performance records on Track Wicket.",
+      keywords: "cricket player, player profile, cricket statistics, Track Wicket",
+      canonical: window.location.href
+    };
+  }
+const seoConfig = getPlayerSEOConfig(profileData);
+  const playerName = profileData.name || "Cricket Player";
+  const country = profileData.country || "International";
+  const role = profileData.role || "Cricketer";
+  
+  const title = `${playerName} - ${country} ${role} Profile & Stats`;
+  const description = `${playerName} cricket player profile. View complete career statistics, batting and bowling records, matches played, and performance analysis for ${country} ${role.toLowerCase()} on Track Wicket.`;
+  const keywords = `${playerName}, ${playerName} stats, ${playerName} profile, ${country} cricket, ${role}, cricket player profile, ${playerName} career, Track Wicket ${playerName}`;
+
+  return {
+    title,
+    description,
+    keywords,
+    canonical: window.location.href,
+    ogImage: profileData.faceImageId ? 
+      `https://www.cricbuzz.com/a/img/v1/200x200/i1/c${profileData.faceImageId}/player-face.jpg` : 
+      "https://trackwicket.tech/twmini.png",
+    breadcrumbs: [
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Players",
+        "item": "https://trackwicket.tech/players"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": playerName,
+        "item": window.location.href
+      }
+    ],
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": playerName,
+      "jobTitle": role,
+      "nationality": country,
+      "sport": "Cricket",
+      "description": description,
+      "url": window.location.href,
+      "image": profileData.faceImageId ? 
+        `https://www.cricbuzz.com/a/img/v1/200x200/i1/c${profileData.faceImageId}/player-face.jpg` : 
+        undefined
+    }
+  };
+};
 
 const getInitialTheme = () => {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -25,6 +83,7 @@ const PlayerDetails = () => {
   const [theme, setTheme] = useState(getInitialTheme);
 
   const [profileData, setProfileData] = useState(null);
+  const seoConfig = getPlayerSEOConfig(profileData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('stats');
@@ -179,6 +238,8 @@ const PlayerDetails = () => {
 
     return (
       <div className="glass-card rounded-2xl overflow-hidden mb-6">
+        <SEO {...seoConfig} />
+        <h1 style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>Track Wicket - {profileData?.name} Cricket Player Profile</h1>
         <Helmet>
         {/* Standard SEO */}
         <title>{`${displayName} Profile | Stats, Rankings & Career - Track Wicket`}</title>

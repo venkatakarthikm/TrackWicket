@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import { 
-  Search, Clock, Bell, ListOrdered, 
+  Search, Clock, UserSearch , ListOrdered, 
   ChevronDown, Menu, X, ArrowLeft, User, Users,
   Gem,
   RadioTower,
@@ -246,18 +246,18 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
             <NavLinkItem to="/live" icon={RadioTower} isActive={isActive('/live') || isActive('/')} isScrolled={isScrolled}>Live</NavLinkItem>
             <NavLinkItem to="/recent" icon={Clock} isActive={isActive('/recent')} isScrolled={isScrolled}>Recent</NavLinkItem>
             <NavLinkItem to="/upcoming" icon={CalendarDays} isActive={isActive('/upcoming')} isScrolled={isScrolled}>Upcoming</NavLinkItem>
-            <NavLinkItem to="/rankings" icon={ListOrdered} isActive={location.pathname.startsWith('/rankings')} isScrolled={isScrolled}>Rankings</NavLinkItem>
+            <NavLinkItem to="/rankings" icon={ListOrdered} isActive={location.pathname.startsWith('/rankings')} isScrolled={isScrolled}>Rank</NavLinkItem>
             <DropdownMenu title="Records" icon={Gem} items={recordsItems} isOpen={recordsOpen} setIsOpen={setRecordsOpen} isScrolled={isScrolled} />
             
             <div className="relative" onMouseEnter={() => { clearTimeout(playerMenuTimeoutRef.current); setPlayersMenuOpen(true); }} onMouseLeave={() => playerMenuTimeoutRef.current = setTimeout(() => setPlayersMenuOpen(false), 150)}>
               <Link to="/players" className={`nav-link ${isActive('/players') ? 'nav-link-active' : ''} ${isScrolled ? 'py-2' : 'py-2.5'}`}>
-                <User size={16} /><span className="hidden lg:inline">Players</span>
+                <UserSearch size={16} /><span className="hidden lg:inline">Players</span>
                 <ChevronDown size={14} className={`ml-1 transition-transform ${playersMenuOpen ? 'rotate-180' : ''}`} />
               </Link>
               <PlayerMegaMenu isOpen={playersMenuOpen} onClose={() => setPlayersMenuOpen(false)} navigate={navigate} />
             </div>
-            <NavLinkItem to="/notifications" icon={Bell} isActive={isActive('/notifications')} isScrolled={isScrolled}>
-                Alerts
+            <NavLinkItem to="/account" icon={User} isActive={isActive('/account')} isScrolled={isScrolled}>
+                Account
               </NavLinkItem>
           </div>
 
@@ -279,7 +279,7 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
           <BottomNavItem to="/recent" icon={Clock} label="Recent" isActive={isActive('/recent')} />
           <BottomNavItem to="/live" icon={RadioTower} label="Live" isActive={isActive('/live') || isActive('/')} />
           <BottomNavItem to="/upcoming" icon={CalendarDays} label="Upcoming" isActive={isActive('/upcoming')} />
-          <BottomNavItem to="/notifications" icon={Bell} label="Alerts" isActive={isActive('/notifications')} />
+          <BottomNavItem to="/account" icon={User} label="Account" isActive={isActive('/account')} />
         </div>
       </div>
 
@@ -296,7 +296,8 @@ const Navbar = ({ theme, toggleTheme, searchQuery = '', setSearchQuery = () => {
               <SearchInput isMobile searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
               <div className="pt-4 space-y-2">
                 <MobileLink to="/rankings" icon={ListOrdered} isActive={isActive('/rankings')} onClick={() => setIsMenuOpen(false)}>Rankings</MobileLink>
-                <MobileLink to="/players" icon={User} isActive={isActive('/players')} onClick={() => setIsMenuOpen(false)}>Players</MobileLink>
+                <MobileLink to="/players" icon={UserSearch} isActive={isActive('/players')} onClick={() => setIsMenuOpen(false)}>Players</MobileLink>
+                <MobileLink to="/account" icon={User} isActive={isActive('/account')} onClick={() => setIsMenuOpen(false)}>Account</MobileLink>
                 <div className="border-t border-border my-4 pt-4">
                   <h4 className="text-[10px] font-bold text-muted-foreground uppercase mb-4">Records</h4>
                   {recordsItems.map((item, idx) => (

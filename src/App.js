@@ -13,7 +13,7 @@ import Players from "./Players.js";
 import PlayerDetails from "./PlayerDetails";
 import StatsPage from "./StatsPage";
 import Footer from "./Footer";
-import Notification from "./Notification";
+import AccountPage from "./AccountPage";
 import Privacy from "./Privacy";
 import Terms from "./Terms";
 import NotFound from "./NotFound.js";
@@ -157,7 +157,7 @@ function App() {
                 <Route path="/player/:playerSlug/:playerId" element={<PlayerDetails {...themeProps} />} />
                 <Route path="/rankings/:gender/:role/:format" element={<Rankings {...themeProps} />} />
                 <Route path="/rankings" element={<Navigate to="/rankings/men/batsmen/odi" replace />} />
-                <Route path="/notifications" element={<Notification {...themeProps} />} />
+                <Route path="/account" element={<AccountPage {...themeProps} />} />
                 <Route path="/privacy" element={<Privacy {...themeProps} />} />
                 <Route path="/terms" element={<Terms {...themeProps} />} />
                 <Route path="/match/:matchId/:teamsSlug/:seriesSlug/live" element={<LiveDetails {...themeProps} />} />

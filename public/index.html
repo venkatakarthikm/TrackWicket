@@ -4,84 +4,183 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     
+    <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://cdn.onesignal.com">
     <link rel="preconnect" href="https://challenges.cloudflare.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="dns-prefetch" href="https://www.google-analytics.com">
 
-    <title>Track Wicket | Live Cricket Scores, News & Stats | Rankings </title>
-    <meta name="description" content="TrackWicket live cricket scores, ball-by-ball commentary, player rankings, and detailed match statistics. Follow IPL, ICC World Cup, and International matches in real-time." />
-    <meta name="keywords" content="cricket live score, live cricket match, cricket news, ball by ball, cricket schedule, Track Wicket, ODI, T20, Test" />
+    <!-- Primary SEO Meta Tags -->
+    <title>Track Wicket - Live Cricket Scores, Rankings & Stats | ICC rankings, player stats, match schedules</title>
+    <meta name="title" content="Track Wicket - Live Cricket Scores & Rankings" />
+    <meta name="description" content="Track Wicket Get live cricket scores, ball-by-ball commentary, ICC rankings, player stats, match schedules for IPL, World Cup, Test, ODI & T20 matches. Real-time updates!" />
+    <meta name="keywords" content="Track Wicket, TrackWicket, Muchu Venkata Karthik, Muchu Venkata Karthik cricket, live cricket score, cricket scores live, ball by ball commentary, cricket rankings, ICC rankings, IPL live score, cricket news, cricket stats, ODI rankings, T20 rankings, Test cricket, cricket schedule, player statistics, cricket world cup, cricket match today, live cricket match" />
     <meta name="author" content="Muchu Venkata Karthik" />
-    <link rel="canonical" href="https://trackwicket.onrender.com/" />
-    <meta name="theme-color" content="#3700B3" />
-
-    <link rel="icon" href="twmini.png" type="image/png" sizes="32x32" />
-    <link rel="icon" href="TW.png" type="image/x-icon" /> 
-    <link rel="apple-touch-icon" href="TW.png" />
-    <link rel="manifest" href="manifest.json" />
-
-    <meta property="og:title" content="Track Wicket | Live Cricket Scores & Updates" />
-    <meta property="og:description" content="Get real-time, ball-by-ball updates and live scores for all cricket matches. Never miss a wicket." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://trackwicket.onrender.com/" />
-    <meta property="og:image" content="TW.png" />
-    <meta property="og:site_name" content="Track Wicket" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@TrackWicket" />
-    <meta name="twitter:title" content="Track Wicket | Live Cricket Scores" />
-    <meta name="twitter:description" content="Real-time, ball-by-ball updates for all major cricket tournaments." />
-    <meta name="twitter:image" content="TW.png" /> 
+    <meta name="creator" content="Muchu Venkata Karthik" />
+    <meta name="publisher" content="Track Wicket" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
     
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://trackwicket.tech/" />
+    
+    <!-- Language & Geo Tags -->
+    <meta name="language" content="English" />
+    <meta name="geo.region" content="IN" />
+    <meta name="geo.placename" content="India" />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#0ea5e9" />
+    <meta name="msapplication-TileColor" content="#0ea5e9" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://trackwicket.tech/" />
+    <meta property="og:title" content="Track Wicket - Live Cricket Scores, Rankings & Stats" />
+    <meta property="og:description" content="Get live cricket scores, ICC rankings, player stats, and match schedules for IPL, World Cup, Test, ODI & T20. Created by Muchu Venkata Karthik." />
+    <meta property="og:image" content="https://trackwicket.techmini.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Track Wicket Cricket Logo" />
+    <meta property="og:site_name" content="Track Wicket" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://trackwicket.tech/" />
+    <meta name="twitter:title" content="Track Wicket - Live Cricket Scores & Rankings" />
+    <meta name="twitter:description" content="Live cricket scores, ICC rankings, player stats for IPL, World Cup, Test, ODI & T20 matches. By Muchu Venkata Karthik." />
+    <meta name="twitter:image" content="https://trackwicket.techmini.png" />
+    <meta name="twitter:creator" content="@TrackWicket" />
+
+    <!-- Additional Meta Tags for Better Indexing -->
+    <meta name="application-name" content="Track Wicket" />
+    <meta name="apple-mobile-web-app-title" content="Track Wicket" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="./twmini.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="./twmini.png" />
+    <link rel="shortcut icon" href="./twmini.png" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Structured Data - Organization Schema -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "name": "Track Wicket",
-          "url": "https://trackwicket.onrender.com/",
-          "logo": "https://trackwicket.onrender.com/TW.png",
-          "sameAs": [
-            "https://twitter.com/TrackWicket"
-          ]
-        },
-        {
-          "@type": "WebSite",
-          "name": "Track Wicket",
-          "url": "https://trackwicket.onrender.com/",
-          "potentialAction": [
-            {
-              "@type": "SearchAction",
-              "target": "https://trackwicket.onrender.com/live?search={search_term_string}",
-              "query-input": "required name=search_term_string"
-            },
-            {
-              "@type": "SearchAction",
-              "name": "Player Search",
-              "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": "https://trackwicket.onrender.com/players?search={player_name}"
-              },
-              "query-input": "required name=player_name"
-            }
-          ]
-        }
+      "@type": "Organization",
+      "name": "Track Wicket",
+      "alternateName": "TrackWicket",
+      "url": "https://trackwicket.tech",
+      "logo": "https://trackwicket.tech/twmini.png",
+      "description": "Live cricket scores, rankings, and statistics platform by Muchu Venkata Karthik",
+      "founder": {
+        "@type": "Person",
+        "name": "Muchu Venkata Karthik"
+      },
+      "sameAs": [
+        "https://trackwicket.tech"
       ]
     }
     </script>
 
-    <!-- Load OneSignal SDK BEFORE React -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <!-- Structured Data - WebSite Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Track Wicket",
+      "url": "https://trackwicket.tech",
+      "description": "Live cricket scores, ICC rankings, player statistics, and match schedules",
+      "author": {
+        "@type": "Person",
+        "name": "Muchu Venkata Karthik"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://trackwicket.tech/players?search={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Structured Data - SportsOrganization Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SportsOrganization",
+      "name": "Track Wicket",
+      "sport": "Cricket",
+      "url": "https://trackwicket.tech",
+      "description": "Comprehensive cricket platform providing live scores, rankings, statistics, and match updates for all formats including Test, ODI, T20, and IPL",
+      "founder": {
+        "@type": "Person",
+        "name": "Muchu Venkata Karthik"
+      }
+    }
+    </script>
+
+    <!-- Breadcrumb Schema (will be dynamically added per page) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://trackwicket.tech/"
+      }]
+    }
+    </script>
+
+    <!-- Preload Critical Assets -->
+    <link rel="preload" as="style" href="/index.css" />
+    
+    <!-- Google Analytics (if you have GA ID) -->
+    <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-SQGDJM538K"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-SQGDJM538K');
-  </script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-SQGDJM538K');
+    </script>
+
+    <!-- Additional SEO Enhancements -->
+    <meta name="rating" content="General" />
+    <meta name="distribution" content="global" />
+    <meta name="revisit-after" content="1 days" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
+    <!-- Prevent Page Translation (optional) -->
+    <!-- <meta name="google" content="notranslate" /> -->
+
   </head>
   <body>
-    <noscript>TrackWicket live cricket scores, ball-by-ball commentary, player rankings, and detailed match statistics. Follow IPL, ICC World Cup, and International matches in real-time.</noscript>
+    <noscript>
+      <div style="padding: 20px; text-align: center; background: #fff3cd; color: #856404;">
+        <h1>Track Wicket - Live Cricket Scores</h1>
+        <p>You need to enable JavaScript to run this cricket app. Track Wicket provides live cricket scores, rankings, and statistics by Muchu Venkata Karthik.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
+    
+    <!-- Service Worker Registration (for PWA) -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js').catch(() => {
+            // Silent fail
+          });
+        });
+      }
+    </script>
   </body>
 </html>

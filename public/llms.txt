@@ -1,0 +1,96 @@
+# Track Wicket - Live Cricket Scores, Rankings & Stats
+
+> Created by Muchu Venkata Karthik
+
+## About Track Wicket
+
+Track Wicket is a comprehensive cricket platform providing real-time live scores, ball-by-ball commentary, ICC rankings, player statistics, and match schedules for all cricket formats including Test, ODI, T20, and IPL.
+
+## Key Features
+
+- **Live Cricket Scores**: Real-time match updates with ball-by-ball commentary
+- **ICC Rankings**: Latest international cricket rankings for men and women
+- **Player Statistics**: Comprehensive stats for international cricketers
+- **Match Schedules**: Upcoming matches and series information
+- **Scorecard Details**: Full scorecards with batting, bowling, and fall of wickets
+- **Team Rankings**: Current standings for Test, ODI, and T20 formats
+
+## Main Sections
+
+### Live Scores
+- URL: https://trackwicket.tech/live
+- Real-time updates for ongoing matches
+- Ball-by-ball commentary
+- Live match status and scores
+
+### Recent Matches
+- URL: https://trackwicket.tech/recent
+- Recently completed matches
+- Full scorecards and results
+
+### Upcoming Matches
+- URL: https://trackwicket.tech/upcoming
+- Match schedules
+- Series information
+- Venue details
+
+### Player Search
+- URL: https://trackwicket.tech/players
+- Search international cricket players
+- Detailed player profiles
+- Career statistics
+
+### Rankings
+- Men's Rankings: Test, ODI, T20 (Batsmen, Bowlers, All-Rounders, Teams)
+- Women's Rankings: ODI, T20 (Batsmen, Bowlers, All-Rounders, Teams)
+- URL Pattern: /rankings/{gender}/{category}/{format}
+
+### Statistics
+- Most Runs, Most Wickets, Best Average, Best Strike Rate
+- Most Sixes, Most Fours, Most Hundreds
+- Best Bowling Economy
+- URL Pattern: /stats/{stat-type}/{format}
+
+## Technical Details
+
+- **Framework**: React.js
+- **Styling**: Tailwind CSS with custom theming
+- **Features**: Dark/Light mode, PWA support, Push notifications
+- **Performance**: Optimized with lazy loading and memoization
+
+## Creator
+
+**Muchu Venkata Karthik**
+- Developer and creator of Track Wicket
+- Passionate about cricket and web development
+
+## Keywords
+
+Track Wicket, TrackWicket, Muchu Venkata Karthik, live cricket score, cricket rankings, ICC rankings, IPL scores, cricket statistics, ball by ball commentary, cricket news, ODI rankings, T20 rankings, Test cricket, cricket schedule, player stats, cricket world cup
+
+## Contact & Legal
+
+- Privacy Policy: https://trackwicket.tech/privacy
+- Terms & Conditions: https://trackwicket.tech/terms
+- Account Settings: https://trackwicket.tech/account
+
+## Search Optimization
+
+This platform is optimized for searches including:
+- "Track Wicket"
+- "TrackWicket"
+- "Muchu Venkata Karthik"
+- "Muchu Venkata Karthik cricket"
+- "Muchu Venkata Karthik Track Wicket"
+- "live cricket scores"
+- "ICC rankings"
+- "cricket statistics"
+
+## API Information
+
+Track Wicket uses real-time cricket data APIs to provide accurate and up-to-date information for cricket enthusiasts worldwide.
+
+---
+
+Last Updated: February 2026
+Version: 2.0

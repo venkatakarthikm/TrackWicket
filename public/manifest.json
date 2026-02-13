@@ -1,15 +1,33 @@
 {
-  "short_name": "TrackWicket",
-  "name": "Track Wicket Cricket Alerts",
+  "short_name": "Track Wicket",
+  "name": "Track Wicket - Live Cricket Scores & Rankings",
+  "description": "Live cricket scores, ICC rankings, player stats, and match schedules",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "twmini.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "twmini.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#3700B3",
-  "background_color": "#ffffff"
+  "theme_color": "#0ea5e9",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["sports", "cricket", "news"],
+  "lang": "en-US",
+  "dir": "ltr"
 }

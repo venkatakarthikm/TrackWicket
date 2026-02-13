@@ -29,6 +29,71 @@ import Navbar from "./Navbar";
 import axios from "axios"; // NEW: Required for API call
 import Loader from "./Loader";
 import { HelmetProvider } from "react-helmet-async";
+import SEO from './SEO';
+
+// Add this function to generate dynamic SEO based on match data
+const getMatchSEOConfig = (matchData) => {
+  if (!matchData) {
+    return {
+      title: "Live Cricket Match Details - Track Wicket",
+      description: "Watch live cricket match with real-time scores, ball-by-ball commentary, and detailed statistics on Track Wicket.",
+      keywords: "live cricket, match details, scorecard, ball by ball, Track Wicket",
+      canonical: window.location.href
+    };
+  }
+
+  const team1 = matchData.team1?.name || "Team 1";
+  const team2 = matchData.team2?.name || "Team 2";
+  const format = matchData.matchFormat || "Cricket";
+  const series = matchData.series?.name || "";
+  
+  const title = `${team1} vs ${team2} Live Score - ${format} Match`;
+  const description = `${team1} vs ${team2} live cricket score and commentary. Follow ball-by-ball updates, scorecard, and match statistics for this ${format} match in ${series} on Track Wicket.`;
+  const keywords = `${team1} vs ${team2}, ${team1} ${team2} live score, ${format} live, live cricket score, ${series}, ball by ball commentary, Track Wicket live, cricket scorecard`;
+
+  return {
+    title,
+    description,
+    keywords,
+    canonical: window.location.href,
+    breadcrumbs: [
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Live Matches",
+        "item": "https://trackwicket.tech/live"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": `${team1} vs ${team2}`,
+        "item": window.location.href
+      }
+    ],
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "SportsEvent",
+      "name": `${team1} vs ${team2} - ${format}`,
+      "description": description,
+      "sport": "Cricket",
+      "competitor": [
+        {
+          "@type": "SportsTeam",
+          "name": team1
+        },
+        {
+          "@type": "SportsTeam",
+          "name": team2
+        }
+      ],
+      "eventStatus": matchData.status || "Live",
+      "location": {
+        "@type": "Place",
+        "name": matchData.venue || "Cricket Stadium"
+      }
+    }
+  };
+};
 
 const getFormatBadgeColor = (format) => {
   switch (format?.toUpperCase()) {
@@ -1213,9 +1278,11 @@ const LiveDetails = ({ theme, toggleTheme }) => {
       </>
     );
   }
-
+const seoConfig = getMatchSEOConfig(matchData);
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO {...seoConfig} />
+      <h1 style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>Track Wicket - {matchData?.team1?.name} vs {matchData?.team2?.name} Live Score</h1>
       <Navbar
         theme={theme}
         toggleTheme={toggleTheme}

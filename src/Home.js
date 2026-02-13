@@ -3,6 +3,7 @@ import { Search, Trophy, ArrowRight, ChevronLeft, Zap } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { Helmet } from "react-helmet-async";
+import SEO from "./SEO";
 
 const createSlug = (text) => {
   if (!text) return "unknown";
@@ -44,20 +45,80 @@ const Home = ({ type = "live" }) => {
   const [loading, setLoading] = useState(true);
   const isLive = type === "live";
   const pageTitle = isLive
-    ? "Live Cricket Scores & Ball-by-Ball Commentary"
-    : "Recent Cricket Match Results & Highlights";
+    ? "Live Cricket Scores & Ball-by-Ball Commentary Track Wicket"
+    : "Recent Cricket Match Results & Highlights Track Wicket";
   const pageDesc = isLive
     ? "Get fastest live cricket scores, ball-by-ball commentary, and real-time updates for IPL, World Cup, and all international matches."
     : "Catch up on recent cricket match results, scorecards, and series summaries. Never miss the action with Track Wicket.";
-  const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
+  const currentUrl = `https://trackwicket.tech${location.pathname}`;
 
   const [searchQuery, setSearchQuery] = useState(getSearchQueryFromUrl());
-
   const [theme, setTheme] = useState(getInitialTheme);
 
   const intervalRef = useRef(null);
   const isMountedRef = useRef(true);
   const prevMatchesRef = useRef(new Map());
+
+  // --- START SEO IMPROVEMENTS ---
+  const getSEOConfig = () => {
+    if (type === "live") {
+      return {
+        title: "Live Cricket Scores - Real Time Updates & Commentary | Track Wicket",
+        description: "Watch live cricket matches with real-time scores, ball-by-ball commentary, and instant updates. Track ongoing Test, ODI, T20, and IPL matches on Track Wicket by Muchu Venkata Karthik.",
+        keywords: "live cricket score, cricket live, live match score, ball by ball commentary, live cricket today, ongoing cricket matches, real time cricket, Track Wicket live, IPL live score, cricket score now",
+        canonical: "https://trackwicket.tech/live",
+        breadcrumbs: [
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Live Scores",
+            "item": "https://trackwicket.tech/live"
+          }
+        ],
+        structuredData: {
+          "@context": "https://schema.org",
+          "@type": "SportsEvent",
+          "name": "Live Cricket Matches",
+          "description": "Real-time live cricket scores and commentary",
+          "sport": "Cricket",
+          "url": "https://trackwicket.tech/live"
+        }
+      };
+    } else if (type === "recent") {
+      return {
+        title: "Recent Cricket Matches - Scores & Results Today | Track Wicket",
+        description: "View recently completed cricket match results, scorecards, and summaries. Get detailed analysis of finished Test, ODI, T20, and IPL matches on Track Wicket.",
+        keywords: "recent cricket matches, cricket results, completed matches, cricket scorecard, match summary, today cricket result, finished matches, Track Wicket recent",
+        canonical: "https://trackwicket.tech/recent",
+        breadcrumbs: [
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Recent Matches",
+            "item": "https://trackwicket.tech/recent"
+          }
+        ],
+        structuredData: {
+          "@context": "https://schema.org",
+          "@type": "SportsEvent",
+          "name": "Recent Cricket Matches",
+          "description": "Recently completed cricket match results and scorecards",
+          "sport": "Cricket",
+          "url": "https://trackwicket.tech/recent"
+        }
+      };
+    }
+    return {
+      title: "Track Wicket - Live Cricket Scores, Rankings & Stats | Track Wicket",
+      description: "Get live cricket scores, ICC rankings, player statistics, match schedules for IPL, World Cup, Test, ODI & T20. Created by Muchu Venkata Karthik.",
+      keywords: "Track Wicket, TrackWicket, Muchu Venkata Karthik cricket, live cricket score, ICC rankings, cricket stats, IPL scores",
+      canonical: "https://trackwicket.tech/",
+      breadcrumbs: []
+    };
+  };
+
+  const seoConfig = getSEOConfig();
+  // --- END SEO IMPROVEMENTS ---
 
   useEffect(() => {
     setSearchQuery(getSearchQueryFromUrl());
@@ -66,7 +127,7 @@ const Home = ({ type = "live" }) => {
   useEffect(() => {
     const pageTitle =
       type === "live" ? "Live Cricket Scores" : "Recent Cricket Matches";
-    document.title = `${pageTitle} - Track Wicket`;
+    document.title = `${pageTitle} | Track Wicket Get live cricket scores and match results for IPL, World Cup, Test, ODI & T20 matches.`;
   }, [type]);
 
   useEffect(() => {
@@ -84,17 +145,12 @@ const Home = ({ type = "live" }) => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  // Navigate to series page when View All is clicked
   const navigateToSeries = (seriesName, allMatches) => {
-    // Get the seriesId from the first match in the series
     const seriesId = allMatches[0]?.seriesId;
-
     if (seriesId) {
       const seriesSlug = createSlug(seriesName);
-      // Navigation to the SEO-friendly URL
       navigate(`/series/${seriesId}/${seriesSlug}`);
     } else {
-      // Fallback to old behavior if seriesId is not available
       setCurrentSeries({ name: seriesName, matches: allMatches });
       setIsViewingSeries(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -103,7 +159,6 @@ const Home = ({ type = "live" }) => {
 
   const handleSearchChange = (query) => {
     setSearchQuery(query);
-
     const params = new URLSearchParams(location.search);
     if (query) {
       params.set("search", encodeURIComponent(query));
@@ -140,7 +195,6 @@ const Home = ({ type = "live" }) => {
         setMatches((prevMatches) => {
           const prevMap = new Map(prevMatches.map((m) => [m.matchId, m]));
           const newMap = new Map(newMatches.map((m) => [m.matchId, m]));
-
           let hasChanges = prevMatches.length !== newMatches.length;
 
           if (!hasChanges) {
@@ -157,9 +211,7 @@ const Home = ({ type = "live" }) => {
               }
             }
           }
-
           prevMatchesRef.current = newMap;
-
           return hasChanges ? newMatches : prevMatches;
         });
       }
@@ -177,7 +229,6 @@ const Home = ({ type = "live" }) => {
   useEffect(() => {
     isMountedRef.current = true;
     fetchMatches(true);
-
     const pollInterval = type === "live" ? 1000 : 10000;
     intervalRef.current = setInterval(() => {
       fetchMatches(false);
@@ -211,8 +262,6 @@ const Home = ({ type = "live" }) => {
 
   const PRIORITY_SERIES = [
     "Indian Premier League 2026",
-    "Womens Premier League 2026",
-    "Women's Premier League 2026",
     "India",
     "The Ashes",
     "Under-19",
@@ -220,6 +269,8 @@ const Home = ({ type = "live" }) => {
     "ICC",
     "Big Bash League",
     "SA20",
+    "Womens Premier League 2026",
+    "Women's Premier League 2026",
   ];
 
   const groupMatchesBySeries = (matches) => {
@@ -242,10 +293,8 @@ const Home = ({ type = "live" }) => {
           );
           return index === -1 ? Infinity : index;
         };
-
         const rankA = getPriorityRank(a);
         const rankB = getPriorityRank(b);
-
         if (rankA < rankB) return -1;
         if (rankA > rankB) return 1;
         return 0;
@@ -256,7 +305,6 @@ const Home = ({ type = "live" }) => {
     seriesNames.forEach((key) => {
       sortedGrouped[key] = grouped[key];
     });
-
     return sortedGrouped;
   };
 
@@ -342,7 +390,15 @@ const Home = ({ type = "live" }) => {
             seriesName: match.seriesName,
           }}
           className="group p-5 rounded-2xl shadow-xl border border-border bg-card hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.02] cursor-pointer block relative overflow-hidden"
+          // SEO: Semantic schema markup
+          itemScope 
+          itemType="https://schema.org/SportsEvent"
         >
+          {/* SEO Metadata */}
+          <meta itemProp="name" content={`${match.teams.team1.name} vs ${match.teams.team2.name}`} />
+          <meta itemProp="description" content={match.matchDescription} />
+          <meta itemProp="sport" content="Cricket" />
+
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
           <div className="relative z-10">
@@ -431,11 +487,10 @@ const Home = ({ type = "live" }) => {
     (prevProps, nextProps) => {
       const prevMatch = prevProps.match;
       const nextMatch = nextProps.match;
-
       return (
         prevMatch.matchId === nextMatch.matchId &&
         prevMatch.status === nextMatch.status &&
-        JSON.stringify(prevMatch.scores) === JSON.stringify(nextProps.scores) &&
+        JSON.stringify(prevMatch.scores) === JSON.stringify(nextProps.match.scores) &&
         prevMatch.matchDescription === nextMatch.matchDescription &&
         prevMatch.venue === nextMatch.venue
       );
@@ -477,7 +532,6 @@ const Home = ({ type = "live" }) => {
   const SeriesGroup = memo(
     ({ seriesName, matches }) => {
       const scrollRef = useRef(null);
-      const [scrollIndex, setScrollIndex] = useState(0);
       const [showScrollbar, setShowScrollbar] = useState(false);
 
       useEffect(() => {
@@ -535,20 +589,15 @@ const Home = ({ type = "live" }) => {
     (prevProps, nextProps) => {
       if (prevProps.seriesName !== nextProps.seriesName) return false;
       if (prevProps.matches.length !== nextProps.matches.length) return false;
-
       for (let i = 0; i < prevProps.matches.length; i++) {
-        const prevMatch = prevProps.matches[i];
-        const nextMatch = nextProps.matches[i];
-
         if (
-          prevMatch.matchId !== nextMatch.matchId ||
-          prevMatch.status !== nextMatch.status ||
-          JSON.stringify(prevMatch.scores) !== JSON.stringify(nextProps.scores)
+          prevProps.matches[i].matchId !== nextProps.matches[i].matchId ||
+          prevProps.matches[i].status !== nextProps.matches[i].status ||
+          JSON.stringify(prevProps.matches[i].scores) !== JSON.stringify(nextProps.matches[i].scores)
         ) {
           return false;
         }
       }
-
       return true;
     }
   );
@@ -563,7 +612,6 @@ const Home = ({ type = "live" }) => {
 
   const renderMatches = (groupedMatches) => {
     const seriesNames = Object.keys(groupedMatches);
-
     if (seriesNames.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-32 animate-fade-in">
@@ -627,6 +675,14 @@ const Home = ({ type = "live" }) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* SEO INTEGRATION */}
+      <SEO {...seoConfig} />
+      
+      {/* HIDDEN H1 FOR SEARCH ENGINES */}
+      <h1 style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>
+        Track Wicket - {type === "live" ? "Live Cricket Scores" : type === "recent" ? "Recent Match Results" : "Cricket Matches"}
+      </h1>
+
       <Helmet>
         <title>{`${pageTitle} - Track Wicket`}</title>
         <meta name="description" content={pageDesc} />
@@ -635,42 +691,17 @@ const Home = ({ type = "live" }) => {
           name="keywords"
           content={`cricket, ${isLive ? "live score, t20 live, ipl live" : "match results, cricket highlights"}, track wicket, ball by ball`}
         />
-
         <meta property="og:type" content="website" />
         <meta property="og:title" content={`${pageTitle} | Track Wicket`} />
         <meta property="og:description" content={pageDesc} />
         <meta property="og:url" content={currentUrl} />
-        <meta
-          property="og:image"
-          content="https://trackwicket.onrender.com/TW.png"
-        />
+        <meta property="og:image" content="https://trackwicket.tech/TW.png" />
         <meta property="og:site_name" content="Track Wicket" />
-
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDesc} />
-        <meta
-          name="twitter:image"
-          content="https://trackwicket.onrender.com/TW.png"
-        />
+        <meta name="twitter:image" content="https://trackwicket.tech/TW.png" />
         <meta name="twitter:site" content="@TrackWicket" />
-
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: pageTitle,
-            description: pageDesc,
-            publisher: {
-              "@type": "Organization",
-              name: "Track Wicket",
-              logo: {
-                "@type": "ImageObject",
-                url: "https://trackwicket.onrender.com/TW.png",
-              },
-            },
-          })}
-        </script>
       </Helmet>
 
       <Navbar

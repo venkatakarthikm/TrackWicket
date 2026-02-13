@@ -4,6 +4,55 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Loading from "./Loading";
 import { Helmet } from 'react-helmet-async';
+import SEO from './SEO';
+
+// Add this function to generate SEO config based on ranking type
+const getRankingSEOConfig = (gender, category, format) => {
+  const genderText = gender === 'men' ? "Men's" : "Women's";
+  const categoryText = category === 'batsmen' ? 'Batting' : 
+                       category === 'bowlers' ? 'Bowling' : 
+                       category === 'allrounders' ? 'All-Rounder' : 'Team';
+  const formatText = format.toUpperCase();
+  
+  const title = `${genderText} ${categoryText} Rankings ${formatText} - ICC Cricket`;
+  const description = `Latest ${genderText} ${categoryText} rankings for ${formatText} cricket. Track ICC official rankings, player ratings, and positions updated regularly on Track Wicket by Muchu Venkata Karthik.`;
+  const keywords = `${genderText} ${categoryText} rankings, ${formatText} rankings, ICC cricket rankings, ${genderText} cricket, cricket player rankings, ${formatText} ${categoryText}, Track Wicket rankings, international cricket rankings`;
+  
+  return {
+    title,
+    description,
+    keywords,
+    canonical: `https://trackwicket.tech/rankings/${gender}/${category}/${format}`,
+    breadcrumbs: [
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Rankings",
+        "item": "https://trackwicket.tech/rankings"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": `${genderText} ${categoryText}`,
+        "item": `https://trackwicket.tech/rankings/${gender}/${category}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": formatText,
+        "item": `https://trackwicket.tech/rankings/${gender}/${category}/${format}`
+      }
+    ],
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "SportsOrganization",
+      "name": `ICC ${genderText} ${categoryText} Rankings - ${formatText}`,
+      "sport": "Cricket",
+      "url": `https://trackwicket.tech/rankings/${gender}/${category}/${format}`,
+      "description": description
+    }
+  };
+};
 
 // --- RANKING POSTER COMPONENT ---
 const RankingPoster = ({ player, isFirst }) => {
@@ -148,13 +197,14 @@ const PlayerRankingsContent = ({ gender, role, formatFromUrl }) => {
   const [format, setFormat] = useState(formatFromUrl || "odi");
   const location = useLocation();
 
+
   // Dynamic SEO Logic
   const roleName = role.charAt(0).toUpperCase() + role.slice(1);
   const genderName = gender.charAt(0).toUpperCase() + gender.slice(1);
   const formatName = format.toUpperCase();
   const dynamicTitle = `ICC ${genderName} ${formatName} ${roleName} Rankings | Track Wicket`;
   const dynamicDesc = `Latest ICC ${genderName} cricket rankings for ${roleName} in ${formatName} format. View top-ranked players, current points, and rating changes on Track Wicket.`;
-  const currentUrl = `https://trackwicket.onrender.com${location.pathname}`;
+  const currentUrl = `https://trackwicket.tech${location.pathname}`;
 
   const [date, setDate] = useState(() => {
     const d = new Date();
@@ -191,9 +241,11 @@ const PlayerRankingsContent = ({ gender, role, formatFromUrl }) => {
     };
     fetchRanks();
   }, [gender, role, format, date]);
-
+const seoConfig = getRankingSEOConfig(gender, role, format);
   return (
     <div className="space-y-12 pb-20">
+      <SEO {...seoConfig} />
+      <h1 style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>Track Wicket - {seoConfig.title}</h1>
       <Helmet>
         {/* Standard SEO */}
         <title>{dynamicTitle}</title>
@@ -206,7 +258,7 @@ const PlayerRankingsContent = ({ gender, role, formatFromUrl }) => {
         <meta property="og:title" content={dynamicTitle} />
         <meta property="og:description" content={dynamicDesc} />
         <meta property="og:url" content={currentUrl} />
-        <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+        <meta property="og:image" content="https://trackwicket.tech/TW.png" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary" />

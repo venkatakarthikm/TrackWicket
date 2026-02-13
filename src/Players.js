@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Loading from './Loading';
 import { Search, User, ChevronRight, Users } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import SEO from './SEO';
 
 const createSlug = (text) => {
   if (!text) return 'unknown';
@@ -31,7 +32,7 @@ const Players = () => {
   const navigate = useNavigate();
 
   // Dynamic SEO Logic
-  const currentUrl = `https://trackwicket.onrender.com/players${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`;
+  const currentUrl = `https://trackwicket.tech/players${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`;
   const dynamicTitle = searchQuery 
     ? `Search results for "${searchQuery}" | Cricket Players - Track Wicket`
     : "Search Cricket Player Profiles & Career Stats | Track Wicket";
@@ -119,8 +120,43 @@ const Players = () => {
     return `https://www.cricbuzz.com/a/img/v1/100x100/i1/c${faceImageId}/player-face.jpg`;
   };
 
+  const seoConfig = {
+  title: "Cricket Players Search - Find International Cricketers",
+  description: "Search and explore international cricket players database. Find detailed profiles, career statistics, and performance records of cricketers from Test, ODI, and T20 formats on Track Wicket.",
+  keywords: "cricket players, international cricketers, player search, cricket database, player profiles, cricketer stats, Virat Kohli, Rohit Sharma, cricket player list, Track Wicket players",
+  canonical: `https://trackwicket.tech/players${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`,
+  breadcrumbs: [
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Players",
+      "item": "https://trackwicket.tech/players"
+    }
+  ],
+  structuredData: {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "International Cricket Players",
+    "description": "Searchable database of international cricket players",
+    "numberOfItems": players.length,
+    "itemListElement": players.slice(0, 10).map((player, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Person",
+        "@id": `https://trackwicket.tech/player/${player.id}/${createSlug(player.name)}`,
+        "name": player.name,
+        "jobTitle": "Cricket Player",
+        "sport": "Cricket"
+      }
+    }))
+  }
+};
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO {...seoConfig} />
+      <h1 style={{ position: 'absolute', left: '-10000px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}>  Track Wicket - International Cricket Players Directory</h1>
       <Helmet>
         {/* Standard SEO */}
         <title>{dynamicTitle}</title>
@@ -133,14 +169,14 @@ const Players = () => {
         <meta property="og:title" content={dynamicTitle} />
         <meta property="og:description" content={dynamicDesc} />
         <meta property="og:url" content={currentUrl} />
-        <meta property="og:image" content="https://trackwicket.onrender.com/TW.png" />
+        <meta property="og:image" content="https://trackwicket.tech/TW.png" />
         <meta property="og:site_name" content="Track Wicket" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={dynamicTitle} />
         <meta name="twitter:description" content={dynamicDesc} />
-        <meta name="twitter:image" content="https://trackwicket.onrender.com/TW.png" />
+        <meta name="twitter:image" content="https://trackwicket.tech/TW.png" />
         <meta name="twitter:site" content="@TrackWicket" />
 
         {/* Search Action Schema (Helps Google understand this is a search page) */}
@@ -154,7 +190,7 @@ const Players = () => {
                 "@type": "ListItem",
                 "position": i + 1,
                 "name": p.name,
-                "url": `https://trackwicket.onrender.com/player/${createSlug(p.name)}/${p.id}`
+                "url": `https://trackwicket.tech/player/${createSlug(p.name)}/${p.id}`
               }))
             }
           })}
