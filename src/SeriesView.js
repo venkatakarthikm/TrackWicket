@@ -974,36 +974,47 @@ const SeriesView = () => {
                 </div>
               </div>
 
-              {/* Tabs */}
-              <div className="mb-8 overflow-x-auto">
-                <div className="flex gap-2 border-b border-border min-w-max">
-                  {[
-                    "default",
-                    "matches",
-                    "points-table",
-                    "stats",
-                    "squads",
-                  ].map((tabName) => (
-                    <button
-                      key={tabName}
-                      onClick={() => handleTabChange(tabName)}
-                      className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 whitespace-nowrap ${
-                        activeTab === tabName
-                          ? "border-primary text-primary"
-                          : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted"
-                      }`}
-                    >
-                      {tabName === "points-table"
-                        ? "Points Table"
-                        : tabName.charAt(0).toUpperCase() + tabName.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* HYBRID TABS: Pinned Mobile / Compact Desktop */}
+<div className="mb-6 w-full">
+  <div className="
+    /* Mobile: 5-column grid that fills the width */
+    grid grid-cols-5 
+    /* Desktop: Natural flex row that fits content */
+    sm:flex sm:w-fit sm:mx-auto 
+    bg-secondary/30 p-1 rounded-xl border border-border
+  ">
+    {[
+      { id: "default", label: "Info" },
+      { id: "matches", label: "Matches" },
+      { id: "points-table", label: "Points" },
+      { id: "stats", label: "Stats" },
+      { id: "squads", label: "Squads" },
+    ].map((t) => (
+      <button
+        key={t.id}
+        onClick={() => handleTabChange(t.id)}
+        className={`
+          flex items-center justify-center py-2.5 px-2 sm:px-6 rounded-lg transition-all duration-300
+          ${
+            activeTab === t.id
+              ? "bg-primary text-primary-foreground shadow-md"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+          }
+        `}
+      >
+        <span className="text-[10px] xs:text-[11px] sm:text-sm font-black uppercase tracking-tighter sm:tracking-normal whitespace-nowrap">
+          {t.label}
+        </span>
+      </button>
+    ))}
+  </div>
+</div>
             </>
           )}
 
-          {renderContent()}
+          <div className="w-full max-w-full overflow-hidden">
+            {renderContent()}
+          </div>
         </div>
       </main>
     </div>
@@ -1100,9 +1111,7 @@ const PointsTableTab = ({ seriesId }) => {
                               : "hover:bg-secondary/20"
                           }`}
                       >
-                        <td
-                          className={`py-4 text-center text-[11px] md:text-sm font-medium ${isExpanded ? "text-primary" : "text-muted-foreground"}`}
-                        >
+                        <td className={`py-4 text-center text-[11px] md:text-sm font-medium ${isExpanded ? "text-primary" : "text-muted-foreground"}`}>
                           {team.position}
                         </td>
                         <td className="py-4 pl-2">
@@ -1112,109 +1121,87 @@ const PointsTableTab = ({ seriesId }) => {
                               alt=""
                               className={`w-5 h-3.5 md:w-7 md:h-5 rounded-sm object-cover border transition-transform ${isExpanded ? "border-primary scale-110 shadow-sm" : "border-border"}`}
                             />
-                            <span
-                              className={`text-[11px] md:text-base truncate transition-colors ${isExpanded ? "font-black text-primary" : "font-bold text-foreground"}`}
-                            >
+                            <span className={`text-[11px] md:text-base truncate transition-colors ${isExpanded ? "font-black text-primary" : "font-bold text-foreground"}`}>
                               {team.team}
                             </span>
                           </div>
                         </td>
-                        <td
-                          className={`py-4 text-center text-[11px] md:text-sm ${isExpanded ? "font-bold" : ""}`}
-                        >
+                        <td className={`py-4 text-center text-[11px] md:text-sm ${isExpanded ? "font-bold" : ""}`}>
                           {team.matches}
                         </td>
-                        <td
-                          className={`py-4 text-center text-[11px] md:text-sm text-green-600 font-bold ${isExpanded ? "scale-110 transition-transform" : ""}`}
-                        >
+                        <td className={`py-4 text-center text-[11px] md:text-sm text-green-600 font-bold ${isExpanded ? "scale-110 transition-transform" : ""}`}>
                           {team.won}
                         </td>
-                        <td
-                          className={`py-4 text-center text-[11px] md:text-sm text-red-500 font-bold ${isExpanded ? "scale-110 transition-transform" : ""}`}
-                        >
+                        <td className={`py-4 text-center text-[11px] md:text-sm text-red-500 font-bold ${isExpanded ? "scale-110 transition-transform" : ""}`}>
                           {team.lost}
                         </td>
-                        <td
-                          className={`py-4 text-center text-[11px] md:text-sm font-black ${isExpanded ? "text-primary" : "text-foreground"}`}
-                        >
+                        <td className={`py-4 text-center text-[11px] md:text-sm font-black ${isExpanded ? "text-primary" : "text-foreground"}`}>
                           {team.points}
                         </td>
-                        <td
-                          className={`py-4 text-center text-[10px] md:text-sm font-medium pr-2 ${isExpanded ? "text-foreground" : "text-muted-foreground"}`}
-                        >
+                        <td className={`py-4 text-center text-[10px] md:text-sm font-medium pr-2 ${isExpanded ? "text-foreground" : "text-muted-foreground"}`}>
                           {team.nrr}
                         </td>
                       </tr>
 
-                      {/* DROPDOWN AREA */}
+                      {/* DROPDOWN AREA - MATCH CARDS UPDATED FOR MOBILE */}
                       {isExpanded && (
                         <tr className="bg-primary/[0.04]">
-                          <td
-                            colSpan="7"
-                            className="p-3 md:p-6 border-b border-primary/10"
-                          >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                          <td colSpan="7" className="p-2 md:p-6 border-b border-primary/10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-6">
                               {team.matchList.map((match, mIdx) => {
-                                const matchSlug = createSlug(
-                                  `${team.team}-vs-${match.opponent}`,
-                                );
-                                const seriesSlug = createSlug(
-                                  pointsData.seriesName,
-                                );
+                                const matchSlug = createSlug(`${team.team}-vs-${match.opponent}`);
+                                const seriesSlug = createSlug(pointsData.seriesName);
                                 const matchUrl = `/match/${match.matchId}/${matchSlug}/${seriesSlug}/live`;
-                                const isCompleted =
-                                  match.result && match.result.trim() !== "";
+                                const isCompleted = match.result && match.result.trim() !== "";
 
                                 return (
                                   <a
                                     key={mIdx}
                                     href={matchUrl}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="group bg-card border border-border rounded-xl p-4 md:p-5 flex flex-col justify-between hover:border-primary hover:shadow-xl transition-all duration-300"
+                                    className="group bg-card border border-border rounded-lg p-3 md:p-5 flex flex-col justify-between hover:border-primary hover:shadow-lg transition-all duration-300"
                                   >
-                                    <div className="flex justify-between items-start mb-3">
-                                      <div className="flex items-center gap-3">
-                                        <div className="p-1 bg-muted rounded">
+                                    <div className="flex justify-between items-start mb-2 md:mb-3">
+                                      <div className="flex items-center gap-2 md:gap-3">
+                                        <div className="p-0.5 bg-muted rounded">
                                           <img
                                             src={match.opponentImageUrl}
                                             alt=""
-                                            className="w-8 h-6 md:w-10 md:h-7 object-cover rounded shadow-sm"
+                                            className="w-6 h-4 md:w-10 md:h-7 object-cover rounded shadow-sm"
                                           />
                                         </div>
                                         <div>
-                                          <p className="text-[10px] md:text-xs font-black text-primary uppercase tracking-widest">
+                                          <p className="text-[9px] md:text-xs font-black text-primary uppercase tracking-tighter md:tracking-widest">
                                             vs {match.opponentShortName}
                                           </p>
-                                          <p className="text-xs md:text-base font-bold text-foreground group-hover:text-primary transition-colors mt-0.5">
+                                          <p className="text-[11px] md:text-base font-bold text-foreground group-hover:text-primary transition-colors leading-tight">
                                             {match.matchName}
                                           </p>
                                         </div>
                                       </div>
-                                      <span
-                                        className={`text-[9px] md:text-[11px] px-2 py-1 rounded-md font-black uppercase ${match.resultStatus === "Won" ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}
-                                      >
+                                      <span className={`text-[8px] md:text-[11px] px-1.5 py-0.5 rounded font-black uppercase ${match.resultStatus === "Won" ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
                                         {match.resultStatus}
                                       </span>
                                     </div>
 
                                     {isCompleted ? (
-                                      <div className="mt-2 pt-3 border-t border-border/60 flex items-center justify-between">
-                                        <p className="text-[11px] md:text-sm text-foreground font-bold italic leading-snug">
+                                      <div className="mt-1 md:mt-2 pt-2 md:pt-3 border-t border-border/60 flex items-center justify-between">
+                                        <p className="text-[10px] md:text-sm text-foreground font-bold italic leading-tight">
                                           {match.result}
                                         </p>
                                         <div className="bg-primary/10 p-1 rounded-full group-hover:bg-primary group-hover:text-white transition-all">
-                                          <ChevronRight size={16} />
+                                          <ChevronRight size={12} className="md:w-4 md:h-4" />
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="mt-2 flex items-center justify-between text-muted-foreground border-t border-border/40 pt-2">
-                                        <div className="flex items-center gap-2">
-                                          <Calendar size={14} />
-                                          <p className="text-[10px] md:text-xs font-medium">
+                                      <div className="mt-1 flex items-center justify-between text-muted-foreground border-t border-border/40 pt-1">
+                                        <div className="flex items-center gap-1.5">
+                                          <Calendar size={10} className="md:w-3.5 md:h-3.5" />
+                                          <p className="text-[9px] md:text-xs font-medium">
                                             {match.date}
                                           </p>
                                         </div>
-                                        <ChevronRight size={14} />
+                                        <ChevronRight size={12} />
                                       </div>
                                     )}
                                   </a>

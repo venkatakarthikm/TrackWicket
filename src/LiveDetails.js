@@ -426,9 +426,9 @@ const LiveView = memo(
               <span className="text-2xl font-extrabold text-foreground whitespace-nowrap">
                 {currentOverDisplay}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 max-w-full">
             {/* Render Ball Circles */}
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5 justify-start">
               {overStats.balls.map((ball, index) => (
                 <div
                   key={index}
@@ -679,9 +679,9 @@ const OversSection = memo(
                 </div>
 
                 {/* Ball by Ball with Progress Stats */}
-                <div className="flex flex-wrap gap-4 items-center">
+                <div className="flex flex-wrap gap-2 sm:gap-4 items-center flex-1 min-w-0">
                   {overData.balls.map((ball, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-background/40 p-1 pr-3 rounded-full border border-border/50">
+                    <div key={index} className="flex items-center gap-1.5 bg-background/40 p-1 pr-2.5 rounded-full border border-border/50">
                       {/* Ball Circle */}
                       <div
                         className={`h-9 w-9 flex items-center justify-center text-xs rounded-full shadow-lg transition-transform hover:scale-110 ${getBallColorClass(ball.run)}`}
