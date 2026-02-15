@@ -8,19 +8,13 @@ import React, {
 } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
-  ChevronLeft,
-  Trophy,
-  Clock,
   Award,
   Calendar,
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  TrendingUp,
   Activity,
   Table,
-  Pin,
-  PinOff,
   Bell, // NEW: Bell Icon
   X, // NEW: Close Icon
   Check, // NEW: Success Icon
@@ -28,7 +22,6 @@ import {
 import Navbar from "./Navbar";
 import axios from "axios"; // NEW: Required for API call
 import Loader from "./Loader";
-import { HelmetProvider } from "react-helmet-async";
 import SEO from './SEO';
 
 // Add this function to generate dynamic SEO based on match data
@@ -425,8 +418,7 @@ const LiveView = memo(
       <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            <TrendingUp size={24} className="text-primary" />
-            Live Batting ({currentInnings.batTeamName})
+            {currentInnings.batTeamName} Batting
           </h2>
 
           {miniscore.recentOvsStats && (
@@ -752,7 +744,6 @@ const CompletedView = memo(({ matchHeader, allInnings }) => {
   return (
     <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
       <h2 className="text-3xl font-bold text-foreground mb-5 flex items-center gap-3">
-        <Trophy size={28} className="text-primary" />
         Match Result
       </h2>
 
@@ -891,11 +882,6 @@ const LiveDetails = ({ theme, toggleTheme }) => {
   const [overHistory, setOverHistory] = useState([]);
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [extensionInstalled, setExtensionInstalled] = useState(false);
-  const [isExtensionCheckComplete, setIsExtensionCheckComplete] =
-    useState(false);
-
   // NEW STATES for Notification Modal
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
   const [notifSuccessMsg, setNotifSuccessMsg] = useState("");
@@ -904,59 +890,48 @@ const LiveDetails = ({ theme, toggleTheme }) => {
   const isMountedRef = useRef(true);
   const prevDataHashRef = useRef(null);
 
-  // Check if device is desktop and if extension is installed
-  useEffect(() => {
-    // 1. Desktop Check Logic
-    const checkDesktop = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
+  // 1. Add a ref at the top of your LiveDetails component
+const wakeLockRef = useRef(null);
 
-    checkDesktop();
-    window.addEventListener("resize", checkDesktop);
-
-    // 2. Extension Check Logic
-    const checkExtension = () => {
-      // Send a ping and set up the response listener
-
-      const handleMessage = (event) => {
-        if (event.data.type === "EXTENSION_RESPONSE") {
-          setExtensionInstalled(true);
-          setIsExtensionCheckComplete(true); // Signal completion on success
-          window.removeEventListener("message", handleMessage); // Remove on success
-          console.log("Extension Verified! State updated.");
-        }
-      };
-
-      window.addEventListener("message", handleMessage);
-
-      // Try to send a message to the extension
-      window.postMessage({ type: "CHECK_EXTENSION" }, "*");
-
-      // FALLBACK TIMEOUT: If no response in 500ms, assume not installed and signal completion
-      const timeout = setTimeout(() => {
-        setIsExtensionCheckComplete(true);
-        window.removeEventListener("message", handleMessage);
-      }, 500);
-
-      // Return cleanup function to remove the listener and clear timeout
-      return () => {
-        window.removeEventListener("message", handleMessage);
-        clearTimeout(timeout);
-      };
-    };
-
-    // 3. Execute the Extension Check
-    const cleanupMessageListener = checkExtension();
-
-    // 4. Cleanup Function (Returned from useEffect)
-    return () => {
-      window.removeEventListener("resize", checkDesktop);
-      // Cleanup the message listener using the function returned from checkExtension
-      if (cleanupMessageListener) {
-        cleanupMessageListener();
+// 2. Add this useEffect inside LiveDetails
+useEffect(() => {
+  const requestWakeLock = async () => {
+    // Only attempt if the browser supports it and match is live
+    if ('wakeLock' in navigator && matchData?.matchHeader?.state === "In Progress") {
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request('screen');
+        
+        // Listen for when the lock is released (e.g. if user switches tabs)
+        wakeLockRef.current.addEventListener('release', () => {
+          console.log('Wake Lock was released');
+        });
+        console.log('Wake Lock is active');
+      } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
       }
-    };
-  }, []); // Empty dependency array means it runs once on mount
+    }
+  };
+
+  requestWakeLock();
+
+  // 3. Handle re-acquisition when the page becomes visible again
+  const handleVisibilityChange = () => {
+    if (wakeLockRef.current !== null && document.visibilityState === 'visible') {
+      requestWakeLock();
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // 4. Cleanup: Release the lock when component unmounts
+  return () => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  };
+}, [matchData?.matchHeader?.state]); // Re-run if match state changes
 
   // Create a hash of critical data to detect actual changes
   const createDataHash = useCallback((data) => {
@@ -1077,84 +1052,6 @@ const LiveDetails = ({ theme, toggleTheme }) => {
       }
     };
   }, [matchData?.matchHeader?.state, fetchMatchDetails]);
-
-  // Handle pin button click
-  const handlePinClick = () => {
-    if (!extensionInstalled) {
-      // Show alert only AFTER the check is complete AND the state is false
-      window.alert(
-        "Cricket Score Extension is not installed!\n\n" +
-          "To use this feature:\n" +
-          "1. Download the extension files\n" +
-          "2. Go to chrome://extensions/\n" +
-          '3. Enable "Developer mode"\n' +
-          '4. Click "Load unpacked"\n' +
-          "5. Select the extension folder\n\n" +
-          "Then refresh this page and try again!"
-      );
-      return;
-    }
-
-    // Create the required data structure for the background script's pinMatch action
-    const initialPinData = {
-      matchId: matchHeader.matchId,
-      team1: {
-        name: matchHeader.team1?.sName || matchHeader.team1?.name,
-        score: displayScore1
-          ? `${displayScore1.score}/${displayScore1.wickets}`
-          : "-",
-      },
-      team2: {
-        name: matchHeader.team2?.sName || matchHeader.team2?.name,
-        score: displayScore2
-          ? `${displayScore2.score}/${displayScore2.wickets}`
-          : "-",
-      },
-      currentBall: miniscore?.recentOvsStats?.split(" ").pop().trim() || "-",
-      currentOver: miniscore?.overs || "-",
-      currentOverStats: miniscore?.recentOvsStats || "-",
-      status: matchHeader.state,
-      striker: miniscore?.batsmanStriker
-        ? {
-            name: miniscore.batsmanStriker.name,
-            runs: miniscore.batsmanStriker.runs,
-            balls: miniscore.batsmanStriker.balls,
-          }
-        : null,
-      nonStriker: miniscore?.batsmanNonStriker
-        ? {
-            name: miniscore.batsmanNonStriker.name,
-            runs: miniscore.batsmanNonStriker.runs,
-            balls: miniscore.batsmanNonStriker.balls,
-          }
-        : null,
-      bowler: miniscore?.bowlerStriker
-        ? {
-            name: miniscore.bowlerStriker.name,
-            wickets: miniscore.bowlerStriker.wickets,
-            runs: miniscore.bowlerStriker.runs,
-            overs: miniscore.bowlerStriker.overs,
-          }
-        : null,
-    };
-
-    if (isPinned) {
-      // Unpin match
-      window.postMessage({ type: "UNPIN_MATCH" }, "*");
-      setIsPinned(false);
-    } else {
-      // Pin match - send data to extension
-      window.postMessage(
-        {
-          type: "PIN_MATCH",
-          data: initialPinData,
-        },
-        "*"
-      );
-
-      setIsPinned(true);
-    }
-  };
 
   // Memoize computed values
   const allInnings = useMemo(
@@ -1313,7 +1210,6 @@ const seoConfig = getMatchSEOConfig(matchData);
           <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-2xl">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-5">
               <div className="flex items-start gap-4 flex-1 min-w-0">
-                <Trophy className="text-primary min-w-[28px] mt-1" size={28} />
                 <div className="flex-1 min-w-0">
                   <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
                     {matchHeader.matchDescription}
@@ -1421,7 +1317,6 @@ const seoConfig = getMatchSEOConfig(matchData);
 
           <div className="bg-card border border-border rounded-2xl p-6 shadow-2xl">
             <h2 className="text-2xl font-bold text-foreground mb-5 flex items-center gap-3">
-              <Clock size={24} className="text-primary" />
               Match Information
             </h2>
 
