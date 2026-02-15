@@ -140,16 +140,16 @@ AnimatedScore.displayName = "AnimatedScore";
 const getBallColorClass = (ball) => {
   const cleanBall = ball.trim().toUpperCase();
   if (["W", "R", "RO"].includes(cleanBall))
-    return "bg-gradient-to-br from-red-500 to-red-700 text-white font-bold shadow-lg animate-pulse-once";
+    return "bg-red-600 text-white font-bold shadow-lg animate-pulse-once";
   if (cleanBall === "6")
-    return "bg-gradient-to-br from-green-500 to-green-700 text-white font-bold shadow-lg";
+    return "bg-orange-500 text-white font-bold shadow-lg border-none";
   if (cleanBall === "4")
-    return "bg-gradient-to-br from-blue-500 to-blue-700 text-white font-bold shadow-lg";
+    return "bg-blue-600 text-white font-bold shadow-lg";
   if (cleanBall.includes("WD") || cleanBall.includes("NB"))
-    return "bg-gradient-to-br from-yellow-400 to-yellow-600 text-black font-bold shadow-lg";
+    return "bg-yellow-400 text-black font-bold shadow-sm";
   if (["1", "2", "3", "0", "."].includes(cleanBall) || /^\d+$/.test(cleanBall))
-    return "bg-gradient-to-br from-gray-600 to-gray-800 text-white shadow-md";
-  return "bg-gradient-to-br from-gray-700 to-gray-900 text-white shadow-md";
+    return "bg-white text-black font-medium shadow-sm border border-gray-200";
+  return "bg-white text-black font-medium shadow-sm border border-gray-200";
 };
 
 // Memoized ball display component
