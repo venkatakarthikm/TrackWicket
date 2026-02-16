@@ -35,33 +35,29 @@ const getMatchSEOConfig = (matchData) => {
     };
   }
 
-  const team1 = matchData.team1?.name || "Team 1";
-  const team2 = matchData.team2?.name || "Team 2";
-  const format = matchData.matchFormat || "Cricket";
-  const series = matchData.series?.name || "";
+  const team1 = matchData.team1?.name || matchData.matchHeader?.team1?.name || "Team 1";
+  const team2 = matchData.team2?.name || matchData.matchHeader?.team2?.name || "Team 2";
+  const format = matchData.matchFormat || matchData.matchHeader?.matchFormat || "Cricket";
+  const series = matchData.series?.name || matchData.matchHeader?.seriesName || "";
+  const venue = matchData.venue || matchData.matchHeader?.venue || "Cricket Stadium";
   
+  // Format ISO Date for Schema (Required)
+  const isoStartDate = matchData.matchHeader?.matchStartTimestamp 
+    ? new Date(matchData.matchHeader.matchStartTimestamp).toISOString() 
+    : new Date().toISOString();
+
   const title = `${team1} vs ${team2} Live Score - ${format} Match`;
-  const description = `${team1} vs ${team2} live cricket score and commentary. Follow ball-by-ball updates, scorecard, and match statistics for this ${format} match in ${series} on Track Wicket.`;
-  const keywords = `${team1} vs ${team2}, ${team1} ${team2} live score, ${format} live, live cricket score, ${series}, ball by ball commentary, Track Wicket live, cricket scorecard`;
+  const description = `${team1} vs ${team2} live cricket score and commentary. Follow ball-by-ball updates and match statistics for this ${format} match in ${series} on Track Wicket.`;
 
   return {
     title,
     description,
-    keywords,
+    keywords: `${team1} vs ${team2}, live score, ${format}, ${series}, Track Wicket`,
     canonical: window.location.href,
     breadcrumbs: [
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Live Matches",
-        "item": "https://trackwicket.tech/live"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": `${team1} vs ${team2}`,
-        "item": window.location.href
-      }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://trackwicket.tech/" },
+      { "@type": "ListItem", "position": 2, "name": "Live Matches", "item": "https://trackwicket.tech/live" },
+      { "@type": "ListItem", "position": 3, "name": `${team1} vs ${team2}`, "item": window.location.href }
     ],
     structuredData: {
       "@context": "https://schema.org",
@@ -69,21 +65,37 @@ const getMatchSEOConfig = (matchData) => {
       "name": `${team1} vs ${team2} - ${format}`,
       "description": description,
       "sport": "Cricket",
-      "competitor": [
-        {
-          "@type": "SportsTeam",
-          "name": team1
-        },
-        {
-          "@type": "SportsTeam",
-          "name": team2
-        }
-      ],
-      "eventStatus": matchData.status || "Live",
+      "startDate": isoStartDate, // FIXED: Added required startDate
+      "endDate": isoStartDate,   // Recommended: Using same as start if end not available
+      "eventStatus": `https://schema.org/${matchData.matchHeader?.state === "Complete" ? "EventCompleted" : "EventScheduled"}`,
+      "image": [
+         matchData.matchHeader?.team1?.imageUrl || "https://trackwicket.tech/logo.png",
+         matchData.matchHeader?.team2?.imageUrl || "https://trackwicket.tech/logo.png"
+      ], // RECOMMENDED: Added images
       "location": {
         "@type": "Place",
-        "name": matchData.venue || "Cricket Stadium"
-      }
+        "name": venue,
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": venue.split(',').pop().trim(), // Tries to extract city
+          "addressCountry": "Global"
+        }
+      }, // FIXED: Added detailed location
+      "competitor": [
+        { "@type": "SportsTeam", "name": team1 },
+        { "@type": "SportsTeam", "name": team2 }
+      ],
+      "organizer": {
+        "@type": "Organization",
+        "name": series || "Cricket Board"
+      }, // RECOMMENDED: Added organizer
+      "offers": {
+        "@type": "Offer",
+        "url": window.location.href,
+        "availability": "https://schema.org/InStock",
+        "price": "0",
+        "priceCurrency": "INR"
+      } // RECOMMENDED: Added free offer to clear warnings
     }
   };
 };
@@ -178,16 +190,6 @@ const BallDisplay = memo(({ balls }) => {
 
 BallDisplay.displayName = "BallDisplay";
 
-const renderBallByBall = (recentOvsStats) => {
-  if (!recentOvsStats) return null;
-  const balls = recentOvsStats
-    .split("|")
-    .pop()
-    .trim()
-    .split(/\s+/)
-    .filter((b) => b.length > 0);
-  return <BallDisplay balls={balls} />;
-};
 
 const formatStartTime = (timestamp) => {
   if (!timestamp) return "TBA";
@@ -881,8 +883,6 @@ const LiveDetails = ({ theme, toggleTheme }) => {
   const [error, setError] = useState(null);
   const [overHistory, setOverHistory] = useState([]);
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
-  // NEW STATES for Notification Modal
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
   const [notifSuccessMsg, setNotifSuccessMsg] = useState("");
 
@@ -1023,7 +1023,7 @@ useEffect(() => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [matchId]);
+  }, [matchId,fetchMatchDetails]);
 
   // Smart polling based on match state
   useEffect(() => {

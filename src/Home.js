@@ -61,61 +61,49 @@ const Home = ({ type = "live" }) => {
 
   // --- START SEO IMPROVEMENTS ---
   const getSEOConfig = () => {
-    if (type === "live") {
-      return {
-        title: "Live Cricket Scores - Real Time Updates & Commentary | Track Wicket",
-        description: "Watch live cricket matches with real-time scores, ball-by-ball commentary, and instant updates. Track ongoing Test, ODI, T20, and IPL matches on Track Wicket by Muchu Venkata Karthik.",
-        keywords: "live cricket score, cricket live, live match score, ball by ball commentary, live cricket today, ongoing cricket matches, real time cricket, Track Wicket live, IPL live score, cricket score now",
-        canonical: "https://trackwicket.tech/live",
-        breadcrumbs: [
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Live Scores",
-            "item": "https://trackwicket.tech/live"
-          }
-        ],
-        structuredData: {
-          "@context": "https://schema.org",
-          "@type": "SportsEvent",
-          "name": "Live Cricket Matches",
-          "description": "Real-time live cricket scores and commentary",
-          "sport": "Cricket",
-          "url": "https://trackwicket.tech/live"
+  const commonData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": type === "live" ? "Live Cricket Matches" : "Recent Cricket Results",
+    "itemListElement": matches.slice(0, 10).map((match, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "SportsEvent",
+        "name": `${match.teams.team1.name} vs ${match.teams.team2.name}`,
+        "description": match.matchDescription,
+        "location": {
+          "@type": "Place",
+          "name": match.venue
         }
-      };
-    } else if (type === "recent") {
-      return {
-        title: "Recent Cricket Matches - Scores & Results Today | Track Wicket",
-        description: "View recently completed cricket match results, scorecards, and summaries. Get detailed analysis of finished Test, ODI, T20, and IPL matches on Track Wicket.",
-        keywords: "recent cricket matches, cricket results, completed matches, cricket scorecard, match summary, today cricket result, finished matches, Track Wicket recent",
-        canonical: "https://trackwicket.tech/recent",
-        breadcrumbs: [
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Recent Matches",
-            "item": "https://trackwicket.tech/recent"
-          }
-        ],
-        structuredData: {
-          "@context": "https://schema.org",
-          "@type": "SportsEvent",
-          "name": "Recent Cricket Matches",
-          "description": "Recently completed cricket match results and scorecards",
-          "sport": "Cricket",
-          "url": "https://trackwicket.tech/recent"
-        }
-      };
-    }
-    return {
-      title: "Track Wicket - Live Cricket Scores, Rankings & Stats | Track Wicket",
-      description: "Get live cricket scores, ICC rankings, player statistics, match schedules for IPL, World Cup, Test, ODI & T20. Created by Muchu Venkata Karthik.",
-      keywords: "Track Wicket, TrackWicket, Muchu Venkata Karthik cricket, live cricket score, ICC rankings, cricket stats, IPL scores",
-      canonical: "https://trackwicket.tech/",
-      breadcrumbs: []
-    };
+      }
+    }))
   };
+
+  if (type === "live") {
+    return {
+      title: "Live Cricket Scores - Real Time Updates & Commentary | Track Wicket",
+      description: "Watch live cricket matches with real-time scores and ball-by-ball commentary. Track ongoing Test, ODI, T20, and IPL matches.",
+      keywords: "live cricket score, cricket live, IPL live score, Track Wicket live",
+      canonical: "https://trackwicket.tech/live",
+      breadcrumbs: [
+        { "@type": "ListItem", "position": 2, "name": "Live Scores", "item": "https://trackwicket.tech/live" }
+      ],
+      structuredData: commonData
+    };
+  } else {
+    return {
+      title: "Recent Cricket Matches - Scores & Results | Track Wicket",
+      description: "View recently completed cricket match results, scorecards, and summaries on Track Wicket.",
+      keywords: "recent cricket matches, cricket results, completed matches, scorecard",
+      canonical: "https://trackwicket.tech/recent",
+      breadcrumbs: [
+        { "@type": "ListItem", "position": 2, "name": "Recent Matches", "item": "https://trackwicket.tech/recent" }
+      ],
+      structuredData: commonData
+    };
+  }
+};
 
   const seoConfig = getSEOConfig();
   // --- END SEO IMPROVEMENTS ---
@@ -263,10 +251,10 @@ const Home = ({ type = "live" }) => {
   const PRIORITY_SERIES = [
     "Indian Premier League 2026",
     "India",
+    "ICC",
     "The Ashes",
     "Under-19",
     "Vijay Hazare",
-    "ICC",
     "Big Bash League",
     "SA20",
     "Womens Premier League 2026",
