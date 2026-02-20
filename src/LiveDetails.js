@@ -65,30 +65,15 @@ const getMatchSEOConfig = (matchData) => {
       "name": `${team1} vs ${team2} - ${format}`,
       "description": description,
       "sport": "Cricket",
-      "startDate": isoStartDate, // FIXED: Added required startDate
-      "endDate": isoStartDate,   // Recommended: Using same as start if end not available
       "eventStatus": `https://schema.org/${matchData.matchHeader?.state === "Complete" ? "EventCompleted" : "EventScheduled"}`,
       "image": [
          matchData.matchHeader?.team1?.imageUrl || "https://trackwicket.tech/logo.png",
          matchData.matchHeader?.team2?.imageUrl || "https://trackwicket.tech/logo.png"
       ], // RECOMMENDED: Added images
-      "location": {
-        "@type": "Place",
-        "name": venue,
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": venue.split(',').pop().trim(), // Tries to extract city
-          "addressCountry": "Global"
-        }
-      }, // FIXED: Added detailed location
       "competitor": [
         { "@type": "SportsTeam", "name": team1 },
         { "@type": "SportsTeam", "name": team2 }
       ],
-      "organizer": {
-        "@type": "Organization",
-        "name": series || "Cricket Board"
-      }, // RECOMMENDED: Added organizer
       "offers": {
         "@type": "Offer",
         "url": window.location.href,
