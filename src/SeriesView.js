@@ -151,12 +151,7 @@ const SeriesView = () => {
         name: seriesName,
         sport: "Cricket",
         description: description,
-        url: window.location.href,
-        event: {
-          "@type": "SportsEvent",
-          name: `${seriesName} ${year}`,
-          sport: "Cricket",
-        },
+        url: window.location.href
       },
     };
   };
