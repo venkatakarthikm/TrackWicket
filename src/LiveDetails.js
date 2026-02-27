@@ -15,12 +15,12 @@ import {
   ChevronUp,
   Activity,
   Table,
-  Bell, // NEW: Bell Icon
-  X, // NEW: Close Icon
-  Check, // NEW: Success Icon
+  Bell,
+  X,
+  Check,
 } from "lucide-react";
 import Navbar from "./Navbar";
-import axios from "axios"; // NEW: Required for API call
+import axios from "axios";
 import Loader from "./Loader";
 import SEO from './SEO';
 
@@ -41,7 +41,6 @@ const getMatchSEOConfig = (matchData) => {
   const series = matchData.series?.name || matchData.matchHeader?.seriesName || "";
   const venue = matchData.venue || matchData.matchHeader?.venue || "Cricket Stadium";
   
-  // Format ISO Date for Schema (Required)
   const isoStartDate = matchData.matchHeader?.matchStartTimestamp 
     ? new Date(matchData.matchHeader.matchStartTimestamp).toISOString() 
     : new Date().toISOString();
@@ -69,7 +68,7 @@ const getMatchSEOConfig = (matchData) => {
       "image": [
          matchData.matchHeader?.team1?.imageUrl || "https://trackwicket.tech/logo.png",
          matchData.matchHeader?.team2?.imageUrl || "https://trackwicket.tech/logo.png"
-      ], // RECOMMENDED: Added images
+      ],
       "competitor": [
         { "@type": "SportsTeam", "name": team1 },
         { "@type": "SportsTeam", "name": team2 }
@@ -80,7 +79,7 @@ const getMatchSEOConfig = (matchData) => {
         "availability": "https://schema.org/InStock",
         "price": "0",
         "priceCurrency": "INR"
-      } // RECOMMENDED: Added free offer to clear warnings
+      }
     }
   };
 };
@@ -101,8 +100,8 @@ const getFormatBadgeColor = (format) => {
 const slugify = (text) => {
   return text
     .toLowerCase()
-    .replace(/[^\w ]+/g, "") // Remove special characters like apostrophes
-    .replace(/ +/g, "-"); // Replace spaces with dashes
+    .replace(/[^\w ]+/g, "")
+    .replace(/ +/g, "-");
 };
 
 // Smooth animated score component with transition
@@ -137,7 +136,7 @@ AnimatedScore.displayName = "AnimatedScore";
 const getBallColorClass = (ball) => {
   const cleanBall = ball.trim().toUpperCase();
   if (["W", "R", "RO"].includes(cleanBall))
-    return "bg-red-600 text-white font-bold shadow-lg animate-pulse-once";
+    return "bg-red-600 text-white font-bold shadow-lg";
   if (cleanBall === "6")
     return "bg-orange-500 text-white font-bold shadow-lg border-none";
   if (cleanBall === "4")
@@ -149,32 +148,49 @@ const getBallColorClass = (ball) => {
   return "bg-white text-black font-medium shadow-sm border border-gray-200";
 };
 
-// Memoized ball display component
-const BallDisplay = memo(({ balls }) => {
+// Enhanced Ball Display with animations
+const BallDisplay = memo(({ balls, lastBallIndex }) => {
   if (!balls || balls.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-1.5 justify-start">
-      {balls.map((ball, index) => (
-        <div
-          key={`${ball}-${index}`}
-          className={`h-9 w-9 flex items-center justify-center text-sm rounded-full transition-all duration-300 hover:scale-110 ${getBallColorClass(
-            ball
-          )}`}
-        >
-          {ball
-            .trim()
-            .replace("Wd", "WD")
-            .replace("nb", "NB")
-            .replace("R", "RO")}
-        </div>
-      ))}
+    <div className="flex flex-wrap gap-1 md:gap-1.5 justify-start">
+      {balls.map((ball, index) => {
+        const isLastBall = index === lastBallIndex;
+        const ballUpper = ball.trim().toUpperCase();
+        
+        let animationClass = "";
+        if (isLastBall) {
+          if (ballUpper === "6") {
+            animationClass = "animate-cricket-six";
+          } else if (ballUpper === "4") {
+            animationClass = "animate-cricket-four";
+          } else if (["W", "R", "RO"].includes(ballUpper)) {
+            animationClass = "animate-cricket-wicket";
+          } else if (ballUpper.includes("WD") || ballUpper.includes("NB")) {
+            animationClass = "animate-cricket-extra";
+          }
+        }
+
+        return (
+          <div
+            key={`${ball}-${index}`}
+            className={`h-7 w-7 md:h-9 md:w-9 flex items-center justify-center text-xs md:text-sm rounded-full transition-all duration-300 hover:scale-110 ${getBallColorClass(
+              ball
+            )} ${animationClass}`}
+          >
+            {ball
+              .trim()
+              .replace("Wd", "WD")
+              .replace("nb", "NB")
+              .replace("R", "RO")}
+          </div>
+        );
+      })}
     </div>
   );
 });
 
 BallDisplay.displayName = "BallDisplay";
-
 
 const formatStartTime = (timestamp) => {
   if (!timestamp) return "TBA";
@@ -321,38 +337,85 @@ const processCommentaryToOvers = (commentaryList, miniscore) => {
   return uniqueOvers.sort((a, b) => b.over - a.over);
 };
 
-// Memoized Batsman Row Component
-const BatsmanRow = memo(({ batsman, isStriker }) => (
-  <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-secondary/20 transition-colors">
-    <span className="text-foreground flex items-center gap-2">
-      <span
-        className={`text-base ${
-          isStriker ? "font-extrabold text-primary" : "font-semibold"
-        }`}
-      >
-        {batsman.batName}
+// Enhanced Batsman Row - Mobile 2 lines, Desktop matching image
+const BatterRow = memo(({ batter, isStriker, isMobile }) => {
+  if (isMobile) {
+    // Mobile: 2 lines - (Name + Score/Balls) and (Stats)
+    return (
+      <div className="py-2 px-2 rounded-lg hover:bg-secondary/20 transition-colors">
+        {/* Line 1: Name + Runs(Balls) */}
+        <div className="flex justify-between items-center mb-1">
+          <span
+            className={`text-sm ${
+              isStriker ? "font-extrabold text-primary" : "font-semibold text-foreground"
+            }`}
+          >
+            {batter.batName}
+            {isStriker && <span className="text-lg animate-pulse ml-1">🏏</span>}
+          </span>
+          <span className="text-sm font-semibold text-foreground">
+            <span className="font-extrabold text-2xl">
+              <AnimatedScore value={batter.batRuns} />
+            </span>
+            <span className="text-xs text-muted-foreground ml-1">
+              ({batter.batBalls})
+            </span>
+          </span>
+        </div>
+
+        {/* Line 2: Stats */}
+        <div className="text-xs text-muted-foreground">
+          <span>4s: <span className="font-semibold text-foreground">{batter.batFours}</span></span>
+          <span className="mx-2">|</span>
+          <span>6s: <span className="font-semibold text-foreground">{batter.batSixes}</span></span>
+          <span className="mx-2">|</span>
+          <span>SR: <span className="font-semibold text-foreground">{parseFloat(batter.batStrikeRate).toFixed(2)}</span></span>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: Exact layout from image - Name left, all stats right
+  return (
+    <div className="flex justify-between items-center py-2 px-3 rounded-lg hover:bg-secondary/20 transition-colors">
+      {/* Left side: Name only */}
+      <span className="text-foreground flex items-center gap-2 flex-shrink-0">
+        <span
+          className={`text-base ${
+            isStriker ? "font-extrabold text-primary" : "font-semibold"
+          }`}
+        >
+          {batter.batName}
+        </span>
       </span>
-      {isStriker && <span className="text-xl animate-bounce"></span>}
-    </span>
-    <span className="text-foreground text-base font-semibold text-right whitespace-nowrap">
-      <span className="text-2xl font-extrabold">
-        <AnimatedScore value={batsman.batRuns} />
+
+      {/* Right side: Score and all stats in one line */}
+      <span className="text-right text-sm font-medium text-muted-foreground ml-4">
+        <span className="font-extrabold text-foreground text-2xl">
+          <AnimatedScore value={batter.batRuns} />
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {" "}({batter.batBalls})
+        </span>
+        <span className="text-xs text-muted-foreground mx-2">
+          | 4s: <span className="font-semibold text-foreground">{batter.batFours}</span>
+        </span>
+        <span className="text-xs text-muted-foreground mx-2">
+          | 6s: <span className="font-semibold text-foreground">{batter.batSixes}</span>
+        </span>
+        <span className="text-xs text-muted-foreground">
+          | SR: <span className="font-semibold text-foreground">{parseFloat(batter.batStrikeRate).toFixed(2)}</span>
+        </span>
       </span>
-      <span className="text-sm text-muted-foreground font-normal ml-1">
-        ({batsman.batBalls})
-      </span>
-      <span className="text-xs text-muted-foreground ml-2 hidden sm:inline">
-        | 4s: {batsman.batFours} | 6s: {batsman.batSixes} | SR:{" "}
-        {parseFloat(batsman.batStrikeRate).toFixed(2)}
-      </span>
-    </span>
-  </div>
-));
+    </div>
+  );
+});
+
+BatterRow.displayName = "BatterRow";
 
 const calculateCumulativeOver = (recentStats) => {
   if (!recentStats) return [];
   
-  // Clean the string and split by spaces to get individual balls
   const balls = recentStats.split("|").pop().trim().split(/\s+/).filter(b => b.length > 0);
   
   let total = 0;
@@ -363,212 +426,296 @@ const calculateCumulativeOver = (recentStats) => {
     } else {
       const runs = parseInt(b.replace(/\D/g, "")) || 0;
       total += runs;
-      if (b.includes("WD") || b.includes("NB")) total += 1; // Standard extra penalty
+      if (b.includes("WD") || b.includes("NB")) total += 1;
     }
     return total;
   });
 };
 
-BatsmanRow.displayName = "BatsmanRow";
-
-// Optimized Live View Component with proper memoization
+// Enhanced Mobile LiveView Component
 const LiveView = memo(
-  ({ miniscore, currentInnings }) => {
+  ({ miniscore, currentInnings, isMobile, displayScore1, displayScore2 }) => {
     const currentOverDisplay = currentInnings?.overs || "-";
 
-    /// Calculate cumulative totals for the current live over
-  const cumulativeTotals = useMemo(() => 
-    calculateCumulativeOver(miniscore?.recentOvsStats), 
-  [miniscore?.recentOvsStats]);
+    const cumulativeTotals = useMemo(() => 
+      calculateCumulativeOver(miniscore?.recentOvsStats), 
+    [miniscore?.recentOvsStats]);
 
-  const overStats = useMemo(() => {
-    if (!miniscore?.recentOvsStats) return { balls: [], total: 0 };
-    
-    // Extract balls from the recent stats string
-    const balls = miniscore.recentOvsStats.split("|").pop().trim().split(/\s+/).filter(b => b.length > 0);
-    
-    // Calculate total runs for the current over
-    const total = balls.reduce((acc, ball) => {
-      const b = ball.toUpperCase();
-      let runs = 0;
-      if (!(b.includes("W") && !b.includes("WD") && !b.includes("NB"))) {
-        runs = parseInt(b.replace(/\D/g, "")) || 0;
-        if (b.includes("WD") || b.includes("NB")) runs += 1;
-      }
-      return acc + runs;
-    }, 0);
+    const overStats = useMemo(() => {
+      if (!miniscore?.recentOvsStats) return { balls: [], total: 0 };
+      
+      const balls = miniscore.recentOvsStats.split("|").pop().trim().split(/\s+/).filter(b => b.length > 0);
+      
+      const total = balls.reduce((acc, ball) => {
+        const b = ball.toUpperCase();
+        let runs = 0;
+        if (!(b.includes("W") && !b.includes("WD") && !b.includes("NB"))) {
+          runs = parseInt(b.replace(/\D/g, "")) || 0;
+          if (b.includes("WD") || b.includes("NB")) runs += 1;
+        }
+        return acc + runs;
+      }, 0);
 
-    return { balls, total };
-  }, [miniscore?.recentOvsStats]);
+      return { balls, total };
+    }, [miniscore?.recentOvsStats]);
 
     return (
-      <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-          <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            {currentInnings.batTeamName} Batting
-          </h2>
+      <div className={`${isMobile ? "bg-card border border-border rounded-xl p-3 mb-4 shadow-lg" : "bg-card border border-border rounded-lg p-3 mb-2 shadow-sm"}`}>
+        {/* Team Name Batting */}
+        <h2 className={`font-bold text-foreground flex items-center gap-3 mb-2 ${isMobile ? "text-base" : "text-lg"}`}>
+          {currentInnings.batTeamName} Batting
+        </h2>
 
-          {miniscore.recentOvsStats && (
-            <div className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-secondary/30 to-secondary/10 border border-border/50">
-              <span className="text-2xl font-extrabold text-foreground whitespace-nowrap">
-                {currentOverDisplay}
-              </span>
-              <div className="flex flex-wrap items-center gap-2 max-w-full">
-            {/* Render Ball Circles */}
-            <div className="flex flex-wrap gap-1.5 justify-start">
-              {overStats.balls.map((ball, index) => (
-                <div
-                  key={index}
-                  className={`h-9 w-9 flex items-center justify-center text-sm rounded-full font-bold shadow-md ${getBallColorClass(ball)}`}
-                >
-                  {ball.replace("Wd", "WD").replace("nb", "NB").replace("R", "RO")}
+        {/* Score Section with Current Over - Reorganized */}
+        {(miniscore.batsmanStriker || miniscore.batTeam) && (
+          <>
+            {/* DESKTOP: Single row card with scores and over stats */}
+            {!isMobile && (
+              <div className={`mb-2 p-3 md:p-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30`}>
+                <div className="flex justify-between items-center gap-3">
+                  {/* Left: Both Team Scores */}
+                  <div className="flex gap-4 md:gap-6 items-center flex-1">
+                    {/* Team 1 Score */}
+                    {displayScore1 && (
+                      <div className="flex flex-col">
+                        <p className={`text-muted-foreground font-semibold text-xs`}>
+                          {displayScore1.batTeamName}
+                        </p>
+                        <p className={`font-extrabold text-foreground text-2xl`}>
+                          <AnimatedScore value={displayScore1.score} />/{displayScore1.wickets}
+                        </p>
+                        <p className={`text-muted-foreground text-xs`}>
+                          ({displayScore1.overs})
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Team 2 Score */}
+                    {displayScore2 && (
+                      <div className="flex flex-col">
+                        <p className={`text-muted-foreground font-semibold text-xs`}>
+                          {displayScore2.batTeamName}
+                        </p>
+                        <p className={`font-extrabold text-primary text-2xl`}>
+                          <AnimatedScore value={displayScore2.score} />/{displayScore2.wickets}
+                        </p>
+                        <p className={`text-muted-foreground text-xs`}>
+                          ({displayScore2.overs})
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Current Over Stats */}
+                  {miniscore.recentOvsStats && (
+                    <div className="flex flex-col items-end gap-1">
+                      <p className={`text-muted-foreground font-semibold text-xs`}>
+                        Over {currentOverDisplay}
+                      </p>
+                      <div className="flex flex-wrap gap-1 justify-end">
+                        <BallDisplay balls={overStats.balls} lastBallIndex={overStats.balls.length - 1} />
+                        <span className={`font-bold text-muted-foreground mx-1 text-base`}>=</span>
+                        <span className={`font-black text-primary text-xl`}>
+                          {overStats.total}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
-            {/* Total Divider and Score */}
-            <span className="text-xl font-bold text-muted-foreground mx-1">=</span>
-            <span className="text-2xl font-black text-primary animate-pulse-once">
-              {overStats.total}
-            </span>
-          </div>
-            </div>
-          )}
-        </div>
+            {/* MOBILE: Scores on first row, over stats on second row */}
+            {isMobile && (
+              <>
+                {/* Row 1: Team Scores */}
+                <div className={`mb-2 p-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30`}>
+                  <div className="flex gap-4 items-center justify-start">
+                    {/* Team 1 Score */}
+                    {displayScore1 && (
+                      <div className="flex flex-col">
+                        <p className={`text-muted-foreground font-semibold text-xs`}>
+                          {displayScore1.batTeamName}
+                        </p>
+                        <p className={`font-extrabold text-foreground text-xl`}>
+                          <AnimatedScore value={displayScore1.score} />/{displayScore1.wickets}
+                        </p>
+                        <p className={`text-muted-foreground text-xs`}>
+                          ({displayScore1.overs})
+                        </p>
+                      </div>
+                    )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-          {miniscore.batsmanStriker && (
-            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 p-5 rounded-xl border border-border/50 order-1">
-              <h3 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wide">
-                Batsmen
-              </h3>
-              <div className="space-y-2">
-                <BatsmanRow
-                  batsman={{
-                    batName: miniscore.batsmanStriker.name,
-                    batRuns: miniscore.batsmanStriker.runs,
-                    batBalls: miniscore.batsmanStriker.balls,
-                    batFours: miniscore.batsmanStriker.fours,
-                    batSixes: miniscore.batsmanStriker.sixes,
-                    batStrikeRate: miniscore.batsmanStriker.strikeRate,
-                  }}
-                  isStriker={true}
-                />
+                    {/* Team 2 Score */}
+                    {displayScore2 && (
+                      <div className="flex flex-col">
+                        <p className={`text-muted-foreground font-semibold text-xs`}>
+                          {displayScore2.batTeamName}
+                        </p>
+                        <p className={`font-extrabold text-primary text-xl`}>
+                          <AnimatedScore value={displayScore2.score} />/{displayScore2.wickets}
+                        </p>
+                        <p className={`text-muted-foreground text-xs`}>
+                          ({displayScore2.overs})
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                {miniscore.batsmanNonStriker && (
-                  <div className="border-t border-border pt-3">
-                    <BatsmanRow
-                      batsman={{
-                        batName: miniscore.batsmanNonStriker.name,
-                        batRuns: miniscore.batsmanNonStriker.runs,
-                        batBalls: miniscore.batsmanNonStriker.balls,
-                        batFours: miniscore.batsmanNonStriker.fours,
-                        batSixes: miniscore.batsmanNonStriker.sixes,
-                        batStrikeRate: miniscore.batsmanNonStriker.strikeRate,
-                      }}
-                      isStriker={false}
-                    />
+                {/* Row 2: Current Over Stats (Separate row on mobile) */}
+                {miniscore.recentOvsStats && (
+                  <div className={`mb-4 p-3 rounded-lg bg-gradient-to-r from-secondary/30 to-secondary/10 border border-border/50`}>
+                    <p className={`text-muted-foreground text-xs font-semibold mb-2`}>Over {currentOverDisplay}</p>
+                    <div className="flex flex-wrap gap-1 items-center">
+                      <BallDisplay balls={overStats.balls} lastBallIndex={overStats.balls.length - 1} />
+                      <span className={`font-bold text-muted-foreground mx-1 text-sm`}>=</span>
+                      <span className={`font-black text-primary text-lg`}>
+                        {overStats.total}
+                      </span>
+                    </div>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
+              </>
+            )}
+          </>
+        )}
 
-          <div className="bg-gradient-to-br from-primary/10 to-accent/10 p-5 rounded-xl flex justify-between items-center order-2 border border-primary/30">
-            <div className="flex flex-col">
-              <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
-                Score
-              </p>
-              <p className="text-4xl font-extrabold text-foreground">
-                <AnimatedScore value={currentInnings.score} />/
-                <AnimatedScore value={currentInnings.wickets} />
-              </p>
-            </div>
-            <div className="flex flex-col text-right">
-              <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
-                Overs
-              </p>
-              <p className="text-4xl font-extrabold text-primary">
-                <AnimatedScore value={currentInnings.overs} />
-              </p>
+        {/* Batters Section */}
+        {miniscore.batsmanStriker && (
+          <div className={`${isMobile ? "mb-4 p-2 md:p-3 rounded-lg" : "mb-2 p-2 rounded-lg"} bg-gradient-to-br from-secondary/20 to-secondary/10 border border-border/50`}>
+            <h3 className="text-xs md:text-sm font-bold text-muted-foreground mb-3 uppercase tracking-wide">
+              Batters
+            </h3>
+            <div className={`${isMobile ? "space-y-1" : "space-y-2"}`}>
+              <BatterRow
+                batter={{
+                  batName: miniscore.batsmanStriker.name,
+                  batRuns: miniscore.batsmanStriker.runs,
+                  batBalls: miniscore.batsmanStriker.balls,
+                  batFours: miniscore.batsmanStriker.fours,
+                  batSixes: miniscore.batsmanStriker.sixes,
+                  batStrikeRate: miniscore.batsmanStriker.strikeRate,
+                }}
+                isStriker={true}
+                isMobile={isMobile}
+              />
+              
+              {miniscore.batsmanNonStriker && (
+                <>
+                  <div className={`border-t border-border ${isMobile ? "pt-1.5" : "pt-3"}`} />
+                  <BatterRow
+                    batter={{
+                      batName: miniscore.batsmanNonStriker.name,
+                      batRuns: miniscore.batsmanNonStriker.runs,
+                      batBalls: miniscore.batsmanNonStriker.balls,
+                      batFours: miniscore.batsmanNonStriker.fours,
+                      batSixes: miniscore.batsmanNonStriker.sixes,
+                      batStrikeRate: miniscore.batsmanNonStriker.strikeRate,
+                    }}
+                    isStriker={false}
+                    isMobile={isMobile}
+                  />
+                </>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-          {miniscore.bowlerStriker && (
-            <div className="bg-gradient-to-br from-secondary/20 to-secondary/10 p-5 rounded-xl border border-border/50 order-3">
-              <h3 className="text-sm font-bold text-muted-foreground mb-4 uppercase tracking-wide">
-                Current Bowler
-              </h3>
-              <div className="flex justify-between items-center">
-                <span className="text-foreground font-bold text-lg">
-                  {miniscore.bowlerStriker.name}
-                </span>
-                <span className="text-xl font-extrabold text-foreground flex items-center gap-2">
-                  <AnimatedScore
-                    value={`${miniscore.bowlerStriker.wickets}/${miniscore.bowlerStriker.runs}`}
-                  />
-                  <span className="text-sm text-muted-foreground font-normal">
-                    ({miniscore.bowlerStriker.overs})
+        {/* Current Bowler Section */}
+        {miniscore.bowlerStriker && (
+          <div className={`${isMobile ? "mb-3 p-1 rounded-lg" : "mb-2 p-1 rounded-lg"} bg-gradient-to-br from-secondary/20 to-secondary/10 border border-border/50`}>
+            <h3 className="text-xs md:text-sm font-bold text-muted-foreground mb-2 uppercase tracking-wide">
+              Bowler
+            </h3>
+            <div className="flex justify-between items-center">
+              <span className={`font-semibold text-foreground ${isMobile ? "text-sm" : "text-base"}`}>
+                {miniscore.bowlerStriker.name}
+              </span>
+              
+              {/* Stats layout - Name on left, stats on right with spacing */}
+              <div className={`flex gap-6 md:gap-8 items-center ${isMobile ? "text-xs" : "text-sm"}`}>
+                {/* O - Overs */}
+                <div className="flex flex-col items-center">
+                  <span className="text-muted-foreground text-xs mb-0.5">O</span>
+                  <span className="font-semibold text-foreground">
+                    {miniscore.bowlerStriker.overs}
                   </span>
-                  <span className="text-sm text-muted-foreground font-normal whitespace-nowrap">
-                    ECO:{" "}
+                </div>
+                
+                {/* R - Runs */}
+                <div className="flex flex-col items-center">
+                  <span className="text-muted-foreground text-xs mb-0.5">R</span>
+                  <span className="font-semibold text-foreground">
+                    <AnimatedScore value={miniscore.bowlerStriker.runs} />
+                  </span>
+                </div>
+                
+                {/* W - Wickets */}
+                <div className="flex flex-col items-center">
+                  <span className="text-muted-foreground text-xs mb-0.5">W</span>
+                  <span className="font-semibold text-foreground">
+                    <AnimatedScore value={miniscore.bowlerStriker.wickets} />
+                  </span>
+                </div>
+                
+                {/* ECO - Economy */}
+                <div className="flex flex-col items-center">
+                  <span className="text-muted-foreground text-xs mb-0.5">ECO</span>
+                  <span className="font-semibold text-foreground">
                     <AnimatedScore
                       value={Number(
                         miniscore.bowlerStriker.economy || 0
                       ).toFixed(2)}
                     />
                   </span>
-                </span>
+                </div>
               </div>
             </div>
-          )}
-
-          <div className="bg-gradient-to-br from-accent/10 to-secondary/10 p-5 rounded-xl flex justify-between items-center order-4 border border-border/50">
-            {miniscore.currentRunRate !== undefined &&
-              miniscore.currentRunRate !== null && (
-                <div className="flex flex-col">
-                  <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
-                    Current RR
-                  </p>
-                  <p className="text-4xl font-extrabold text-primary">
-                    <AnimatedScore
-                      value={Number(miniscore.currentRunRate).toFixed(2)}
-                    />
-                  </p>
-                </div>
-              )}
-            {miniscore.requiredRunRate !== undefined &&
-              miniscore.requiredRunRate !== null &&
-              miniscore.requiredRunRate > 0 && (
-                <div className="flex flex-col text-right">
-                  <p className="text-xs text-muted-foreground mb-2 font-semibold uppercase">
-                    Required RR
-                  </p>
-                  <p className="text-4xl font-extrabold text-yellow-500">
-                    <AnimatedScore
-                      value={Number(miniscore.requiredRunRate).toFixed(2)}
-                    />
-                  </p>
-                </div>
-              )}
           </div>
+        )}
+
+        {/* Run Rate Section */}
+        <div className={`${isMobile ? "mb-4 p-2 md:p-3 rounded-lg grid grid-cols-2 gap-2" : "mb-2 p-2 rounded-lg flex justify-between items-center"} bg-gradient-to-br from-accent/10 to-secondary/10 border border-border/50`}>
+          {miniscore.currentRunRate !== undefined &&
+            miniscore.currentRunRate !== null && (
+              <div className="flex flex-col">
+                <p className={`text-muted-foreground font-semibold ${isMobile ? "text-xs" : "text-sm"}`}>CRR</p>
+                <p className={`font-extrabold text-primary ${isMobile ? "text-lg" : "text-3xl"}`}>
+                  <AnimatedScore
+                    value={Number(miniscore.currentRunRate).toFixed(2)}
+                  />
+                </p>
+              </div>
+            )}
+          {miniscore.requiredRunRate !== undefined &&
+            miniscore.requiredRunRate !== null &&
+            miniscore.requiredRunRate > 0 && (
+              <div className={`flex flex-col ${isMobile ? "" : "text-right"}`}>
+                <p className={`text-muted-foreground font-semibold ${isMobile ? "text-xs" : "text-sm"}`}>RRR</p>
+                <p className={`font-extrabold text-yellow-500 ${isMobile ? "text-lg" : "text-3xl"}`}>
+                  <AnimatedScore
+                    value={Number(miniscore.requiredRunRate).toFixed(2)}
+                  />
+                </p>
+              </div>
+            )}
         </div>
 
+        {/* Last Wicket */}
         {miniscore.lastWicket && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/30 rounded-xl">
-            <p className="text-sm text-red-400 font-semibold">
+          <div className={`${isMobile ? "mb-3 p-2 rounded-lg text-xs" : "mb-2 p-2 rounded-lg text-xs"} bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/30`}>
+            <p className={`text-red-400 font-semibold`}>
               <strong>Last Wicket:</strong>{" "}
               <AnimatedScore value={miniscore.lastWicket} className="inline" />
             </p>
           </div>
         )}
+
+        {/* Status */}
         {miniscore.status && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/30">
-            <p className="text-center font-bold text-lg text-foreground">
-              {miniscore.status}
-            </p>
+          <div className={`${isMobile ? "p-2 rounded-lg text-sm" : "p-2 rounded-lg text-sm"} bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30 text-center font-bold text-foreground`}>
+            {miniscore.status}
           </div>
         )}
       </div>
@@ -579,14 +726,17 @@ const LiveView = memo(
       JSON.stringify(prevProps.miniscore) ===
         JSON.stringify(nextProps.miniscore) &&
       JSON.stringify(prevProps.currentInnings) ===
-        JSON.stringify(nextProps.currentInnings)
+        JSON.stringify(nextProps.currentInnings) &&
+      prevProps.isMobile === nextProps.isMobile &&
+      JSON.stringify(prevProps.displayScore1) === JSON.stringify(nextProps.displayScore1) &&
+      JSON.stringify(prevProps.displayScore2) === JSON.stringify(nextProps.displayScore2)
     );
   }
 );
 
 LiveView.displayName = "LiveView";
 
-// Memoized Over History Section
+// Enhanced Over History Section
 const OversSection = memo(
   ({
     commentaryList,
@@ -594,13 +744,14 @@ const OversSection = memo(
     overHistory,
     isHistoryExpanded,
     setIsHistoryExpanded,
+    isMobile,
   }) => {
     if (overHistory.length === 0) return null;
 
     const displayedOvers = isHistoryExpanded
       ? overHistory
-      : overHistory.slice(0, 2);
-    const hasMore = overHistory.length > 2;
+      : overHistory.slice(0, isMobile ? 1 : 2);
+    const hasMore = overHistory.length > (isMobile ? 1 : 2);
 
     const cleanCommText = (text) =>
       text
@@ -609,21 +760,17 @@ const OversSection = memo(
         .substring(0, 100)
         .trim();
 
-    // Logic to calculate the cumulative total after each ball in the over
     const calculateOverProgress = (balls) => {
       let runningTotal = 0;
       return balls.map((ball) => {
         const ballRun = ball.run.toUpperCase();
         
-        // standard cricket logic: Wickets = 0 runs, unless it's a wide/no-ball wicket
         if (ballRun.includes("W") && !ballRun.includes("WD") && !ballRun.includes("NB")) {
            // No runs added
         } else {
-          // Extract numeric runs (1, 2, 3, 4, 6)
           const numericRuns = parseInt(ballRun.replace(/\D/g, "")) || 0;
           runningTotal += numericRuns;
 
-          // Add +1 penalty run for Extras (Wide or No Ball)
           if (ballRun.includes("WD") || ballRun.includes("NB")) {
             runningTotal += 1;
           }
@@ -633,45 +780,43 @@ const OversSection = memo(
     };
 
     return (
-      <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
-        <h2 className="text-2xl font-bold text-foreground mb-5 flex items-center gap-3">
-          <RefreshCw size={24} className="text-primary" />
-          Innings Over History
+      <div className={`${isMobile ? "bg-card border border-border rounded-xl p-3 mb-4 shadow-lg" : "bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl"}`}>
+        <h2 className={`font-bold text-foreground flex items-center gap-2 mb-4 ${isMobile ? "text-base" : "text-2xl"}`}>
+          <RefreshCw size={isMobile ? 18 : 24} className="text-primary" />
+          {isMobile ? "Overs" : "Innings Over History"}
         </h2>
 
-        <div className="space-y-6">
+        <div className={isMobile ? "space-y-2" : "space-y-6"}>
           {displayedOvers.map((overData) => {
-            // Get the running total array for this specific over
             const overProgress = calculateOverProgress(overData.balls);
 
             return (
               <div
                 key={overData.over}
-                className="bg-gradient-to-r from-secondary/30 to-secondary/10 p-4 rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-border/50"
+                className={`${isMobile ? "bg-gradient-to-r from-secondary/30 to-secondary/10 p-2 rounded-lg" : "bg-gradient-to-r from-secondary/30 to-secondary/10 p-4 rounded-xl"} flex flex-col gap-2 border border-border/50`}
               >
-                <div className="flex items-center gap-4 flex-shrink-0">
-                  <div className="min-w-[70px] bg-primary/10 p-2 rounded-lg border border-primary/30 text-center">
-                    <span className="text-lg font-black text-primary block">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className={`${isMobile ? "min-w-[50px] px-1.5 py-0.5 text-sm" : "min-w-[70px] p-2"} bg-primary/10 rounded-lg border border-primary/30 text-center`}>
+                    <span className={`font-black text-primary block ${isMobile ? "text-xs" : "text-lg"}`}>
                       Ov {overData.over}
                     </span>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-foreground">
-                      {currentInnings?.batTeamName} {overData.score}-{overData.wickets}
+                  <div className="flex flex-col text-xs md:text-sm">
+                    <span className="font-bold text-foreground">
+                      {overData.score}-{overData.wickets}
                     </span>
-                    <span className="text-xs text-muted-foreground italic">
-                      {overData.runs} runs in over
+                    <span className="text-muted-foreground italic">
+                      {overData.runs} runs
                     </span>
                   </div>
                 </div>
 
-                {/* Ball by Ball with Progress Stats */}
-                <div className="flex flex-wrap gap-2 sm:gap-4 items-center flex-1 min-w-0">
+                {/* Ball by Ball - Responsive */}
+                <div className="flex flex-wrap gap-1 md:gap-1.5 items-center">
                   {overData.balls.map((ball, index) => (
-                    <div key={index} className="flex items-center gap-1.5 bg-background/40 p-1 pr-2.5 rounded-full border border-border/50">
-                      {/* Ball Circle */}
+                    <div key={index} className={`flex items-center gap-0.5 ${isMobile ? "bg-background/40 p-0.5 pr-1" : "bg-background/40 p-1 pr-2.5"} rounded-full border border-border/50`}>
                       <div
-                        className={`h-9 w-9 flex items-center justify-center text-xs rounded-full shadow-lg transition-transform hover:scale-110 ${getBallColorClass(ball.run)}`}
+                        className={`${isMobile ? "h-6 w-6 text-xs" : "h-9 w-9 text-xs"} flex items-center justify-center rounded-full shadow-lg transition-transform hover:scale-110 ${getBallColorClass(ball.run)}`}
                         title={`${ball.striker}: ${cleanCommText(ball.commText)}`}
                       >
                         {ball.run
@@ -681,18 +826,19 @@ const OversSection = memo(
                           .replace("L1", "LB")}
                       </div>
                       
-                      {/* Current Over Total Progress */}
-                      <span className="text-sm font-black text-foreground">
+                      <span className={`font-black text-foreground ${isMobile ? "text-xs" : "text-sm"}`}>
                         {overProgress[index]}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className="hidden xl:flex flex-col text-right text-[10px] text-muted-foreground uppercase tracking-wider">
-                  <span>Bowler: <b className="text-foreground">{overData.bowler}</b></span>
-                  <span>Striker: <b className="text-foreground">{overData.batsmanStriker}</b></span>
-                </div>
+                {!isMobile && (
+                  <div className="hidden xl:flex flex-col text-right text-[10px] text-muted-foreground uppercase tracking-wider">
+                    <span>Bowler: <b className="text-foreground">{overData.bowler}</b></span>
+                    <span>Striker: <b className="text-foreground">{overData.batsmanStriker}</b></span>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -701,12 +847,12 @@ const OversSection = memo(
         {hasMore && (
           <button
             onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
-            className="w-full mt-6 flex items-center justify-center gap-2 px-4 py-3 bg-secondary/50 text-foreground rounded-xl text-sm font-bold hover:bg-secondary transition-all border border-border shadow-sm"
+            className={`w-full mt-3 md:mt-6 flex items-center justify-center gap-2 ${isMobile ? "px-3 py-2 text-xs" : "px-4 py-3 text-sm"} bg-secondary/50 text-foreground rounded-xl font-bold hover:bg-secondary transition-all border border-border shadow-sm`}
           >
             {isHistoryExpanded ? (
-              <><ChevronUp size={18} /> Show Less</>
+              <><ChevronUp size={isMobile ? 16 : 18} /> Show Less</>
             ) : (
-              <><ChevronDown size={18} /> View All {overHistory.length} Overs</>
+              <><ChevronDown size={isMobile ? 16 : 18} /> View All {overHistory.length} Overs</>
             )}
           </button>
         )}
@@ -716,44 +862,45 @@ const OversSection = memo(
   (prevProps, nextProps) => {
     return (
       prevProps.isHistoryExpanded === nextProps.isHistoryExpanded &&
-      JSON.stringify(prevProps.overHistory) === JSON.stringify(nextProps.overHistory)
+      JSON.stringify(prevProps.overHistory) === JSON.stringify(nextProps.overHistory) &&
+      prevProps.isMobile === nextProps.isMobile
     );
   }
 );
 
 OversSection.displayName = "OversSection";
 
-const CompletedView = memo(({ matchHeader, allInnings }) => {
+const CompletedView = memo(({ matchHeader, allInnings, isMobile }) => {
   const statusColor = matchHeader.status.toLowerCase().includes("won")
     ? "text-green-400"
     : "text-yellow-400";
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl">
-      <h2 className="text-3xl font-bold text-foreground mb-5 flex items-center gap-3">
+    <div className={`${isMobile ? "bg-card border border-border rounded-xl p-3 mb-4 shadow-lg" : "bg-card border border-border rounded-2xl p-6 mb-6 shadow-2xl"}`}>
+      <h2 className={`font-bold text-foreground flex items-center gap-3 mb-4 ${isMobile ? "text-base" : "text-3xl"}`}>
         Match Result
       </h2>
 
-      <div className="p-5 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl mb-6 border border-primary/30">
-        <p className={`text-center font-bold text-2xl ${statusColor}`}>
+      <div className={`${isMobile ? "p-2 rounded-lg mb-3 text-base" : "p-5 rounded-xl mb-6"} bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/30 text-center`}>
+        <p className={`font-bold ${statusColor} ${isMobile ? "text-lg" : "text-2xl"}`}>
           {matchHeader.status}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className={`${isMobile ? "grid grid-cols-1 gap-2" : "grid grid-cols-1 md:grid-cols-2 gap-5"}`}>
         {allInnings.map((inning, index) => (
           <div
             key={index}
-            className="bg-gradient-to-br from-secondary/30 to-secondary/10 p-5 rounded-xl border border-border/50"
+            className={`${isMobile ? "bg-gradient-to-br from-secondary/30 to-secondary/10 p-2 rounded-lg" : "bg-gradient-to-br from-secondary/30 to-secondary/10 p-5 rounded-xl"} border border-border/50`}
           >
-            <h3 className="text-lg font-bold text-foreground mb-3">
-              {inning.batTeamName} Innings
+            <h3 className={`font-bold text-foreground mb-2 ${isMobile ? "text-xs" : "text-lg"}`}>
+              {inning.batTeamName}
             </h3>
             <div className="flex justify-between items-center">
-              <p className="text-4xl font-extrabold text-foreground">
+              <p className={`font-extrabold text-foreground ${isMobile ? "text-2xl" : "text-4xl"}`}>
                 {inning.score}/{inning.wickets}
               </p>
-              <p className="text-base text-muted-foreground">
+              <p className={`text-muted-foreground ${isMobile ? "text-xs" : "text-base"}`}>
                 Overs: {inning.overs}
               </p>
             </div>
@@ -763,8 +910,8 @@ const CompletedView = memo(({ matchHeader, allInnings }) => {
 
       {matchHeader.playersOfTheMatch &&
         matchHeader.playersOfTheMatch.length > 0 && (
-          <div className="mt-6 flex items-center justify-center gap-3 text-lg p-4 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 rounded-xl border border-yellow-500/30">
-            <Award className="text-yellow-500" size={24} />
+          <div className={`${isMobile ? "mt-3 px-2 py-1.5 rounded-lg text-xs" : "mt-6 p-4 rounded-xl text-lg"} flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 border border-yellow-500/30`}>
+            <Award className="text-yellow-500" size={isMobile ? 16 : 24} />
             <span className="text-muted-foreground">Player of the Match:</span>
             <span className="font-bold text-foreground">
               {matchHeader.playersOfTheMatch[0].fullName ||
@@ -778,19 +925,18 @@ const CompletedView = memo(({ matchHeader, allInnings }) => {
 
 CompletedView.displayName = "CompletedView";
 
-const UpcomingView = memo(({ matchHeader }) => (
-  <div className="bg-card border border-border rounded-2xl p-8 mb-6 shadow-2xl text-center">
-    <h2 className="text-4xl font-bold text-primary mb-5 flex items-center justify-center gap-4">
-      <Calendar size={36} />
-      Match Scheduled
+const UpcomingView = memo(({ matchHeader, isMobile }) => (
+  <div className={`${isMobile ? "bg-card border border-border rounded-xl p-4 mb-4 shadow-lg text-center" : "bg-card border border-border rounded-2xl p-8 mb-6 shadow-2xl text-center"}`}>
+    <h2 className={`font-bold text-primary flex items-center justify-center gap-3 mb-3 ${isMobile ? "text-base gap-2" : "text-4xl gap-4"}`}>
+      <Calendar size={isMobile ? 24 : 36} />
+      {isMobile ? "Match Soon" : "Match Scheduled"}
     </h2>
-    <p className="text-xl text-muted-foreground mb-5">
+    <p className={`text-muted-foreground mb-3 ${isMobile ? "text-xs" : "text-xl"}`}>
       {matchHeader.team1.name} vs {matchHeader.team2.name}
     </p>
-    <div className="p-5 bg-gradient-to-r from-secondary/30 to-secondary/10 inline-block rounded-xl border border-border/50">
-      <p className="text-2xl font-bold text-foreground">
-        Match starts at{" "}
-        <span className="text-primary">
+    <div className={`${isMobile ? "py-2 px-3 inline-block text-sm rounded-lg" : "p-5 inline-block rounded-xl"} bg-gradient-to-r from-secondary/30 to-secondary/10 border border-border/50`}>
+      <p className={`font-bold text-foreground ${isMobile ? "text-xs" : "text-2xl"}`}>
+        {isMobile ? "Starts: " : "Match starts at "}<span className="text-primary">
           {formatStartTime(matchHeader.matchStartTimestamp)}
         </span>
       </p>
@@ -800,7 +946,7 @@ const UpcomingView = memo(({ matchHeader }) => (
 
 UpcomingView.displayName = "UpcomingView";
 
-// --- NEW: Notification Subscribe Modal ---
+// Enhanced Notification Modal
 const NotificationModal = ({ isOpen, onClose, team1, team2, onSubscribe }) => {
   if (!isOpen) return null;
   return (
@@ -859,9 +1005,11 @@ const NotificationModal = ({ isOpen, onClose, team1, team2, onSubscribe }) => {
   );
 };
 
+
 const LiveDetails = ({ theme, toggleTheme }) => {
   const { matchId, teamsSlug, seriesSlug } = useParams();
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [matchData, setMatchData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -874,51 +1022,53 @@ const LiveDetails = ({ theme, toggleTheme }) => {
   const intervalRef = useRef(null);
   const isMountedRef = useRef(true);
   const prevDataHashRef = useRef(null);
+  const wakeLockRef = useRef(null);
 
-  // 1. Add a ref at the top of your LiveDetails component
-const wakeLockRef = useRef(null);
+  // Handle responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-// 2. Add this useEffect inside LiveDetails
-useEffect(() => {
-  const requestWakeLock = async () => {
-    // Only attempt if the browser supports it and match is live
-    if ('wakeLock' in navigator && matchData?.matchHeader?.state === "In Progress") {
-      try {
-        wakeLockRef.current = await navigator.wakeLock.request('screen');
-        
-        // Listen for when the lock is released (e.g. if user switches tabs)
-        wakeLockRef.current.addEventListener('release', () => {
-          console.log('Wake Lock was released');
-        });
-        console.log('Wake Lock is active');
-      } catch (err) {
-        console.error(`${err.name}, ${err.message}`);
+  // Wake Lock for live matches
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      if ('wakeLock' in navigator && matchData?.matchHeader?.state === "In Progress") {
+        try {
+          wakeLockRef.current = await navigator.wakeLock.request('screen');
+          
+          wakeLockRef.current.addEventListener('release', () => {
+            console.log('Wake Lock was released');
+          });
+          console.log('Wake Lock is active');
+        } catch (err) {
+          console.error(`${err.name}, ${err.message}`);
+        }
       }
-    }
-  };
+    };
 
-  requestWakeLock();
+    requestWakeLock();
 
-  // 3. Handle re-acquisition when the page becomes visible again
-  const handleVisibilityChange = () => {
-    if (wakeLockRef.current !== null && document.visibilityState === 'visible') {
-      requestWakeLock();
-    }
-  };
+    const handleVisibilityChange = () => {
+      if (wakeLockRef.current !== null && document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-  // 4. Cleanup: Release the lock when component unmounts
-  return () => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    if (wakeLockRef.current) {
-      wakeLockRef.current.release();
-      wakeLockRef.current = null;
-    }
-  };
-}, [matchData?.matchHeader?.state]); // Re-run if match state changes
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release();
+        wakeLockRef.current = null;
+      }
+    };
+  }, [matchData?.matchHeader?.state]);
 
-  // Create a hash of critical data to detect actual changes
   const createDataHash = useCallback((data) => {
     if (!data) return null;
     return JSON.stringify({
@@ -933,7 +1083,6 @@ useEffect(() => {
     });
   }, []);
 
-  // Update page title dynamically
   useEffect(() => {
     if (matchData?.matchHeader && matchData?.miniscore) {
       const { matchHeader, miniscore } = matchData;
@@ -1008,9 +1157,8 @@ useEffect(() => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [matchId,fetchMatchDetails]);
+  }, [matchId, fetchMatchDetails]);
 
-  // Smart polling based on match state
   useEffect(() => {
     if (!matchData?.matchHeader) return;
 
@@ -1038,7 +1186,6 @@ useEffect(() => {
     };
   }, [matchData?.matchHeader?.state, fetchMatchDetails]);
 
-  // Memoize computed values
   const allInnings = useMemo(
     () => matchData?.miniscore?.matchScoreDetails?.inningsScoreList || [],
     [matchData]
@@ -1061,14 +1208,12 @@ useEffect(() => {
     [allInnings]
   );
 
-  // --- NEW: Handle Subscription Logic ---
   const handleOpenNotifModal = () => {
     setIsNotifModalOpen(true);
   };
 
   const handleSubscribe = async (teamsToAdd) => {
     try {
-      // Call the new API endpoint
       await axios.post(
         `${process.env.REACT_APP_API_BASE_URL}/preferences/add`,
         {
@@ -1077,16 +1222,13 @@ useEffect(() => {
         { withCredentials: true }
       );
 
-      // Show success feedback
       setIsNotifModalOpen(false);
       setNotifSuccessMsg(`Subscribed to ${teamsToAdd.join(" & ")}`);
 
-      // Clear message after 3 seconds
       setTimeout(() => setNotifSuccessMsg(""), 3000);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         alert("Please login to subscribe to notifications.");
-        // Optional: navigate('/notifications');
       } else {
         alert("Failed to subscribe. Please try again.");
         console.error(err);
@@ -1115,14 +1257,13 @@ useEffect(() => {
   const matchState = matchHeader.state;
   const scorecardPath = `/match/${matchId}/${teamsSlug}/${seriesSlug}/scorecard`;
 
-  // Helper to extract clean team names
   const team1Name = matchHeader.team1?.name || "Team 1";
   const team2Name = matchHeader.team2?.name || "Team 2";
 
   let matchContentView;
 
   if (matchState === "Upcoming") {
-    matchContentView = <UpcomingView matchHeader={matchHeader} />;
+    matchContentView = <UpcomingView matchHeader={matchHeader} isMobile={isMobile} />;
   } else if (
     matchState === "In Progress" ||
     matchState === "Stumps" ||
@@ -1132,7 +1273,7 @@ useEffect(() => {
   ) {
     matchContentView = (
       <>
-        <LiveView miniscore={miniscore} currentInnings={currentInnings} />
+        <LiveView miniscore={miniscore} currentInnings={currentInnings} isMobile={isMobile} displayScore1={displayScore1} displayScore2={displayScore2} />
         {commentaryList?.length > 0 && (
           <OversSection
             commentaryList={commentaryList}
@@ -1140,6 +1281,7 @@ useEffect(() => {
             overHistory={overHistory || []}
             isHistoryExpanded={isHistoryExpanded}
             setIsHistoryExpanded={setIsHistoryExpanded}
+            isMobile={isMobile}
           />
         )}
       </>
@@ -1147,7 +1289,7 @@ useEffect(() => {
   } else if (matchState === "Complete") {
     matchContentView = (
       <>
-        <CompletedView matchHeader={matchHeader} allInnings={allInnings} />
+        <CompletedView matchHeader={matchHeader} allInnings={allInnings} isMobile={isMobile} />
         {commentaryList?.length > 0 && (
           <OversSection
             commentaryList={commentaryList}
@@ -1155,12 +1297,15 @@ useEffect(() => {
             overHistory={overHistory || []}
             isHistoryExpanded={isHistoryExpanded}
             setIsHistoryExpanded={setIsHistoryExpanded}
+            isMobile={isMobile}
           />
         )}
       </>
     );
   }
-const seoConfig = getMatchSEOConfig(matchData);
+
+  const seoConfig = getMatchSEOConfig(matchData);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO {...seoConfig} />
@@ -1173,7 +1318,6 @@ const seoConfig = getMatchSEOConfig(matchData);
         isMatchDetails={true}
       />
 
-      {/* NEW: Notification Modal */}
       <NotificationModal
         isOpen={isNotifModalOpen}
         onClose={() => setIsNotifModalOpen(false)}
@@ -1182,7 +1326,6 @@ const seoConfig = getMatchSEOConfig(matchData);
         onSubscribe={handleSubscribe}
       />
 
-      {/* NEW: Success Toast */}
       {notifSuccessMsg && (
         <div className="fixed top-20 right-4 z-50 bg-green-500 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-slide-in-right">
           <Check size={20} />
@@ -1191,25 +1334,24 @@ const seoConfig = getMatchSEOConfig(matchData);
       )}
 
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-8">
-          <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-2xl">
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-5">
-              <div className="flex items-start gap-4 flex-1 min-w-0">
+        <div className={`${isMobile ? "px-3 py-4" : "container mx-auto px-4 py-8"}`}>
+          <div className={`${isMobile ? "bg-card border border-border rounded-xl p-3 mb-4 shadow-lg" : "bg-card border border-border rounded-2xl p-5 mb-6 shadow-2xl"}`}>
+            <div className={`${isMobile ? "flex flex-col gap-3 mb-3" : "flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-5"}`}>
+              <div className={`flex items-start gap-3 flex-1 min-w-0 ${isMobile ? "" : ""}`}>
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+                  <h1 className={`font-bold text-foreground mb-1 ${isMobile ? "text-base line-clamp-2" : "text-2xl sm:text-3xl"}`}>
                     {matchHeader.matchDescription}
                   </h1>
-                  <div className="flex flex-wrap items-center gap-3">
-                    {/* Wrap the Series Name in a Link */}
+                  <div className="flex flex-wrap items-center gap-2">
                     <Link
                       to={`/series/${matchHeader.seriesId - 123456}/${slugify(matchHeader.seriesName)}`}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                      className={`text-muted-foreground hover:text-primary transition-colors cursor-pointer ${isMobile ? "text-xs" : "text-sm"}`}
                     >
                       {matchHeader.seriesName}
                     </Link>
 
                     <span
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg ${getFormatBadgeColor(
+                      className={`px-2 py-1 rounded-full text-xs font-bold shadow-lg ${getFormatBadgeColor(
                         matchHeader.matchFormat
                       )}`}
                     >
@@ -1219,28 +1361,28 @@ const seoConfig = getMatchSEOConfig(matchData);
                 </div>
               </div>
 
-              <div className="flex flex-row gap-5 w-full lg:w-auto">
+              <div className={`flex gap-2 w-full lg:w-auto ${isMobile ? "flex-col" : "flex-row"}`}>
                 {displayScore1 && (
-                  <div className="text-right p-3 flex-1 bg-secondary/20 rounded-xl">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">
+                  <div className={`${isMobile ? "text-center p-2 flex-1 bg-secondary/20 rounded-lg text-xs" : "text-right p-3 flex-1 bg-secondary/20 rounded-xl"}`}>
+                    <p className={`font-semibold text-muted-foreground mb-0.5 ${isMobile ? "text-xs" : "text-xs"}`}>
                       {displayScore1.batTeamName}
                     </p>
-                    <p className="text-3xl font-extrabold text-foreground whitespace-nowrap">
+                    <p className={`font-extrabold text-foreground whitespace-nowrap ${isMobile ? "text-lg" : "text-3xl"}`}>
                       {displayScore1.score}/{displayScore1.wickets}
-                      <span className="text-sm text-muted-foreground ml-1">
+                      <span className={`text-muted-foreground ml-0.5 ${isMobile ? "text-xs" : "text-sm"}`}>
                         ({displayScore1.overs})
                       </span>
                     </p>
                   </div>
                 )}
                 {displayScore2 && (
-                  <div className="text-right p-3 flex-1 bg-primary/10 rounded-xl">
-                    <p className="text-xs font-semibold text-primary mb-1">
+                  <div className={`${isMobile ? "text-center p-2 flex-1 bg-primary/10 rounded-lg text-xs" : "text-right p-3 flex-1 bg-primary/10 rounded-xl"}`}>
+                    <p className={`font-semibold text-primary mb-0.5 ${isMobile ? "text-xs" : "text-xs"}`}>
                       {displayScore2.batTeamName}
                     </p>
-                    <p className="text-3xl font-extrabold text-primary whitespace-nowrap">
+                    <p className={`font-extrabold text-primary whitespace-nowrap ${isMobile ? "text-lg" : "text-3xl"}`}>
                       {displayScore2.score}/{displayScore2.wickets}
-                      <span className="text-sm text-muted-foreground ml-1">
+                      <span className={`text-muted-foreground ml-0.5 ${isMobile ? "text-xs" : "text-sm"}`}>
                         ({displayScore2.overs})
                       </span>
                     </p>
@@ -1249,48 +1391,48 @@ const seoConfig = getMatchSEOConfig(matchData);
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-between items-center gap-4 pt-5 border-t border-border/50">
-              <div className="flex flex-wrap gap-6 text-sm">
+            <div className={`${isMobile ? "flex flex-col gap-2 pt-2 border-t border-border/50" : "flex flex-wrap justify-between items-center gap-4 pt-5 border-t border-border/50"}`}>
+              <div className={`flex flex-wrap gap-3 text-sm ${isMobile ? "gap-2 text-xs" : ""}`}>
                 {matchHeader.tossResults && (
                   <div className="flex gap-2">
-                    <span className="text-xs text-muted-foreground font-semibold">
+                    <span className={`text-muted-foreground font-semibold ${isMobile ? "text-xs" : "text-xs"}`}>
                       Toss:
                     </span>
-                    <span className="font-semibold text-foreground">
+                    <span className={`font-semibold text-foreground ${isMobile ? "text-xs" : ""}`}>
                       {formatTossResult(matchHeader.tossResults)}
                     </span>
                   </div>
                 )}
                 <div className="flex gap-2">
-                  <span className="text-xs text-muted-foreground font-semibold">
+                  <span className={`text-muted-foreground font-semibold ${isMobile ? "text-xs" : "text-xs"}`}>
                     Status:
                   </span>
-                  <span className="font-semibold text-foreground">
+                  <span className={`font-semibold text-foreground ${isMobile ? "text-xs" : ""}`}>
                     {matchHeader.state}
                   </span>
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                {/* NEW: Bell Button for Notifications */}
+              <div className={`flex gap-2 ${isMobile ? "w-full" : ""}`}>
                 <button
                   onClick={handleOpenNotifModal}
-                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-300 bg-secondary/50 text-foreground hover:bg-yellow-500/10 hover:text-yellow-500 border border-transparent hover:border-yellow-500/50"
+                  className={`flex items-center justify-center gap-2 rounded-xl transition-all duration-300 bg-secondary/50 text-foreground hover:bg-yellow-500/10 hover:text-yellow-500 border border-transparent hover:border-yellow-500/50 ${isMobile ? "flex-1 px-3 py-2 text-sm" : "px-3 py-2.5"}`}
                   title="Get Notifications for this match"
                 >
-                  <Bell size={20} />
+                  <Bell size={isMobile ? 16 : 20} />
+                  {isMobile && <span className="text-xs">Notify</span>}
                 </button>
 
                 {matchState !== "Upcoming" && (
                   <>
-                    <button className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 bg-primary text-primary-foreground shadow-lg">
-                      <Activity size={18} /> Live
+                    <button className={`flex items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all duration-300 bg-primary text-primary-foreground shadow-lg ${isMobile ? "flex-1 px-3 py-2" : "px-5 py-2.5"}`}>
+                      <Activity size={isMobile ? 16 : 18} /> {isMobile ? "Live" : "Live"}
                     </button>
                     <Link
                       to={scorecardPath}
-                      className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      className={`flex items-center justify-center gap-2 rounded-xl text-sm font-bold transition-all duration-300 bg-secondary text-secondary-foreground hover:bg-secondary/80 ${isMobile ? "flex-1 px-3 py-2" : "px-5 py-2.5"}`}
                     >
-                      <Table size={18} /> Scorecard
+                      <Table size={isMobile ? 16 : 18} /> {isMobile ? "Card" : "Scorecard"}
                     </Link>
                   </>
                 )}
@@ -1300,38 +1442,40 @@ const seoConfig = getMatchSEOConfig(matchData);
 
           {matchContentView}
 
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-2xl">
-            <h2 className="text-2xl font-bold text-foreground mb-5 flex items-center gap-3">
-              Match Information
-            </h2>
+          {!isMobile && (
+            <div className="bg-card border border-border rounded-2xl p-6 shadow-2xl">
+              <h2 className="text-2xl font-bold text-foreground mb-5 flex items-center gap-3">
+                Match Information
+              </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-              <div className="flex flex-col py-2">
-                <span className="text-muted-foreground text-sm font-semibold mb-1">
-                  Start Time:
-                </span>
-                <span className="font-semibold text-foreground">
-                  {formatDate(matchHeader.matchStartTimestamp)}
-                </span>
-              </div>
-              <div className="flex flex-col py-2">
-                <span className="text-muted-foreground text-sm font-semibold mb-1">
-                  Venue:
-                </span>
-                <span className="font-semibold text-foreground">
-                  {matchHeader.venue || "TBA"}
-                </span>
-              </div>
-              <div className="flex flex-col py-2">
-                <span className="text-muted-foreground text-sm font-semibold mb-1">
-                  Match Type:
-                </span>
-                <span className="font-semibold text-foreground">
-                  {matchHeader.matchType}
-                </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="flex flex-col py-2">
+                  <span className="text-muted-foreground text-sm font-semibold mb-1">
+                    Start Time:
+                  </span>
+                  <span className="font-semibold text-foreground">
+                    {formatDate(matchHeader.matchStartTimestamp)}
+                  </span>
+                </div>
+                <div className="flex flex-col py-2">
+                  <span className="text-muted-foreground text-sm font-semibold mb-1">
+                    Venue:
+                  </span>
+                  <span className="font-semibold text-foreground">
+                    {matchHeader.venue || "TBA"}
+                  </span>
+                </div>
+                <div className="flex flex-col py-2">
+                  <span className="text-muted-foreground text-sm font-semibold mb-1">
+                    Match Type:
+                  </span>
+                  <span className="font-semibold text-foreground">
+                    {matchHeader.matchType}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
     </div>
